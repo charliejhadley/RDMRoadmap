@@ -1,12 +1,9 @@
-## Server for RDM Roadmap Dashboard
+## Timeline test file
 
-# Packages to load
-library(ggplot2)
-library(shiny)
-library(treemap)
-
-# Load data sources
 library(googlesheets)
+library(ggplot2)
+
+# Load data
 projects.sheet <- gs_key("1I6Z94prfJrmSSmD_mwqazkp8Qx8AUmmsp9hAW6bF8yQ",
                          visibility = "public")
 projects.df <- gs_read(projects.sheet)
@@ -19,21 +16,13 @@ projects.df$Project.Manager <- as.factor(projects.df$Project.Manager)
 projects.df$Senior.Supplier <- as.factor(projects.df$Senior.Supplier)
 projects.df$Senior.User <- as.factor(projects.df$Senior.User)
 
-# Reorder projects by budget
+## Order the factors
 
 projects.df$Project.Short.Name <- factor(projects.df$Project.Short.Name, 
                                          levels=projects.df[order(projects.df$Budget.Requested),]$Project.Short.Name)
-
-# regex for handling new lines in text
-newlineFn <- function(text){
-  gsub(pattern = "\n", replacement = "<p>", x = text)
-}
+## ggplot2
 
 
-# Shiny Server
-
-shinyServer(
-  function(input, output, session){
-    source("external/app.R",local = TRUE)
-  }
-)
+base <- ggplot(projects.df,
+               aes(Project.Short.Name, Project.Start.Date, order=Budget.Requested,ymin=Project.Start.Date,color=as.factor(IT.Board),ymax=Project.End.Date,xticks)) + xlab("Project.Short.Name")
+base + geom_linerange(size=4,alpha=.7) + coord_flip() + scale_colour_brewer(palette="Spectral")
