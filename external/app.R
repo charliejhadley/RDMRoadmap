@@ -43,6 +43,7 @@ output$projTimelineSummary <- renderUI({
             HTML(paste(
               "<b>Budget Requested:</b> £",as.character(projData$Budget.Requested),"<p>"
             )),
+            HTML(paste("<a href='",projData$Dummy.Link,"'>",projData$Dummy.Link,"</a><p>")),
             HTML(newlineFn(projData$Project.Summary)))
 })
 

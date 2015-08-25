@@ -1,6 +1,6 @@
 # Area Plot for RDM Roadmap Dashboard
 
-tabPanel("Budget Comparison",
+tabPanel("Resource Comparison",
          fluidPage(
            "Make an area chart",
            ## Selected point output,
