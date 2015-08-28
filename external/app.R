@@ -18,7 +18,7 @@ output$projtimeline <- renderPlot({
     dat,
     aes(
       Project.Short.Name, Project.Start.Date, ymin = Project.Start.Date,color =
-        as.factor(IT.Board),ymax = Project.End.Date,xticks
+        as.factor(IT.Board),ymax = Project.End.Date,xticks,order = Budget.Requested
     )
   ) + xlab("Project.Short.Name")
   base + geom_linerange(size = 4,alpha = .7) +  coord_flip()  + scale_colour_brewer(palette = "Spectral")
@@ -39,14 +39,76 @@ output$projTimelineSummary <- renderUI({
     projData[order(projData$Budget.Requested)[round(input$projtimeline_click$y)],]
   
   #  projData <- projData[round(input$projtimeline_click$y),]
-  wellPanel(titlePanel(projData$Project.Short.Name),
-            HTML(paste(
-              "<b>Budget Requested:</b> £",as.character(projData$Budget.Requested),"<p>"
-            )),
-            HTML(paste("<a href='",projData$Dummy.Link,"'>",projData$Dummy.Link,"</a><p>")),
-            HTML(newlineFn(projData$Project.Summary)))
+  wellPanel(
+    titlePanel(projData$Project.Short.Name),
+    HTML(paste(
+      "<b>Budget Requested:</b> £",as.character(projData$Budget.Requested),"<p>"
+    )),
+    HTML(
+      paste(
+        "<a href='",projData$Dummy.Link,"'>",projData$Dummy.Link,"</a><p>"
+      )
+    ),
+    HTML(newlineFn(projData$Project.Summary))
+  )
 })
 
+
+# ===================== Comms Plan Timelines ================================
+
+output$commsPlanMultiDayUI <- renderUI({
+  plotOutput("commsPlanMultiDay",
+             click = "commsPlanMultiDay_click")
+})
+
+output$commsPlanMultiDay <- renderPlot({
+  base <- ggplot(dat,
+                 aes(Start.Date, Action, color = Comms.Type, order = Source))
+  
+  base + geom_segment(
+    aes(
+      xend = End.Date,ystart = Action,yend = Action
+    ), color = "black", size = 5
+  ) + geom_segment(aes(
+    xend = End.Date,ystart = Action,yend = Action
+  ),size = 4) + scale_y_discrete(breaks = NULL) +
+    facet_grid(Source ~ .,scale = "free_y",space = "free_y", drop = TRUE)
+})
+
+output$commsPlanMultiDaySummary <- renderUI({
+  if (is.null(input$commsPlanMultiDay_click$y))
+    return()
+  comms.df <- commsplanMultiDay.df
+  
+  slction <-
+    subset(comms.df, subset = Source == input$commsPlanMultiDay_click$panelvar1)[round(input$commsPlanMultiDay_click$y),]
+  
+  #  print(str(input$commsPlanMultiDay_click))
+  #  print(subset(comms.df, subset = Source == input$commsPlanMultiDay_click$panelvar1))
+  print(subset(comms.df, subset = Source == input$commsPlanMultiDay_click$panelvar1))
+  
+  #  commsDf <- commsplanMultiDay.df
+  
+  #  commsDf <-
+  #    commsDf[order(commsDf$Source)[round(input$projtimeline_click$y)],]
+  
+  #  commsDf <- commsDf[round(input$projtimeline_click$y),]
+  wellPanel(
+    titlePanel(slction$Action),
+    slction$Source,
+    slction$Start.Date,
+    slction$End.Date
+    #     HTML(paste(
+    #       "<b>Budget Requested:</b> £",as.character(commsDf$Budget.Requested),"<p>"
+    #     )),
+    #     HTML(
+    #       paste(
+    #         "<a href='",commsDf$Dummy.Link,"'>",commsDf$Dummy.Link,"</a><p>"
+    #       )
+    #     ),
+    #     HTML(newlineFn(commsDf$Project.Summary))
+  )
+})
 # ===================== Budget Treemap Outputs ===============================
 
 tmLocate <- function(coor, tmSave) {
