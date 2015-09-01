@@ -26,41 +26,80 @@ commsplanMultiDay.df$Source <-
     commsplanMultiDay.df$Source, ordered = TRUE, levels = c("RDM - John Southall","Open Access","FOOBAR")
   )
 
-
-### duplicating data.frame
-
+## Get all Comms.Types
 new.df <- commsplanMultiDay.df
 
+levels(commsplanMultiDay.df$Comms.Type)
 
-new.df$orderID <-
-  factor(
-    order(new.df$Start.Date), ordered = TRUE, levels = order(new.df$Start.Date)
-  )
+subset(new.df, subset = Comms.Type == c("Briefing","Presentation"))
 
-str(new.df)
+is.null(subset(new.df, Comms.Type %in% c("Briefing") & Source %in% c("Foobar")))
+
+
+subset(new.df, Comms.Type %in% c("Briefing"))
+
 
 ## Extract elements
 
-sbst <- subset(commsplanMultiDay.df, subset = Source == "FOOBAR")
+sbst <- subset(commsplanMultiDay.df, subset = Source == "Open Access")
 sbst[,c(2,6:7)]
 sbst[order(sbst$Action),c(2,6:7)]
+sbst[order(sbst$Start.Date,sbst$Action),c(2,6:7)]
 
-### ======= geom_segment solution ========== ###
+order(sbst$Start.Date,sbst$Action)
+
+str(reorder(new.df$Action,new.df$Start.Date))
+
+new.df[order(new.df$Start.Date,new.df$Action),]
+new.df$Action
+
+reorder(new.df$Action,order(new.df$Start.Date,new.df$Action))
+
+comms.df <-
+  subset(
+    commsplanMultiDay.df, subset = Comms.Type %in% c("Briefing","Email"), drop = TRUE
+  )
+
+str(comms.df)
+comms.df$Comms.Type
+### ======= geom_segment solution (experimental) ========== ###
+
+new.df$Action <- factor
+
+
+
+base <- ggplot(#  commsplanMultiDay.df,
+  new.df,
+  aes(
+    x = Start.Date, reorder(Action,Start.Date), color = Comms.Type, order = Action
+  ))
+
+base + geom_segment(aes(
+  xend = End.Date,ystart = Action, yend = Action
+), color = "black", size = 5) + geom_segment(aes(
+  xend = End.Date,ystart = Action, yend = Action
+), size = 4) 
+#  scale_y_discrete(breaks = NULL) + 
+#  facet_grid(Source ~ .,scale = "free_y",space = "free_y", drop = TRUE)
+
+
+### ======= geom_segment solution (that works) ========== ###
 
 sort(commsplanMultiDay.df$Start.Date)
 
 base <- ggplot(#  commsplanMultiDay.df,
   new.df,
   aes(
-    x = Start.Date, Action, color = Comms.Type, order = Start.Date
+    x = Start.Date, reorder(Action,Start.Date), color = Comms.Type, order = Action
   ))
 
 base + geom_segment(aes(
-  xend = End.Date,ystart = Action,yend = Action, order = Start.Date
+  xend = End.Date,ystart = Action, yend = Action
 ), color = "black", size = 5) + geom_segment(aes(
-  xend = End.Date,ystart = Action,yend = Action, order = Start.Date
-),size = 4) + scale_y_discrete(breaks = NULL) + facet_grid(Source ~ .,scale =
-                                                             "free_y",space = "free_y", drop = TRUE)
+  xend = End.Date,ystart = Action, yend = Action
+), size = 4) + 
+  scale_y_discrete(breaks = NULL) + 
+  facet_grid(Source ~ .,scale = "free_y",space = "free_y", drop = TRUE)
 
 
 
