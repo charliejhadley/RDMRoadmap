@@ -7,21 +7,32 @@ output$projtimelineUI <- renderUI({
 })
 
 output$projtimeline <- renderPlot({
-  dat <-
-    projects.df[projects.df$Project.Start.Date >= paste(input$projTimelineRange[1],"01","01",sep =
+  proj.df <- subset(projects.df, subset = IT.Board %in% input$selITBoard)
+  
+  proj.df <-
+    proj.df[proj.df$Project.Start.Date >= paste(input$projTimelineRange[1],"01","01",sep =
                                                           "-") &
-                  projects.df$Project.End.Date <= paste(input$projTimelineRange[2],"12","31",sep =
+                  proj.df$Project.End.Date <= paste(input$projTimelineRange[2],"12","31",sep =
                                                           "-"),]
-  if (nrow(dat) == 0)
+  
+  if (nrow(proj.df) == 0)
     return(NULL)
-  base <- ggplot(
-    dat,
-    aes(
-      Project.Short.Name, Project.Start.Date, ymin = Project.Start.Date,color =
-        as.factor(IT.Board),ymax = Project.End.Date,xticks,order = Budget.Requested
-    )
-  ) + xlab("Project.Short.Name")
-  base + geom_linerange(size = 4,alpha = .7) +  coord_flip()  + scale_colour_brewer(palette = "Spectral")
+  
+  base <-
+    ggplot(proj.df, aes(x = Project.Start.Date, y = taskID, color = as.factor(IT.Board)))
+  base +
+    scale_y_discrete(breaks = proj.df$taskID, labels = proj.df$Project.Short.Name) +
+    geom_segment(aes(xend = Project.End.Date, y = taskID, yend = taskID), size = 5)
+  
+## OLD WORKING
+#   base <- ggplot(
+#     proj.df,
+#     aes(
+#       Project.Short.Name, Project.Start.Date, ymin = Project.Start.Date,color =
+#         as.factor(IT.Board),ymax = Project.End.Date,xticks,order = Budget.Requested
+#     )
+#   ) + xlab("Project.Short.Name")
+#   base + geom_linerange(size = 4,alpha = .7) +  coord_flip()  + scale_colour_brewer(palette = "Spectral")
 })
 
 
@@ -38,7 +49,6 @@ output$projTimelineSummary <- renderUI({
   projData <-
     projData[order(projData$Budget.Requested)[round(input$projtimeline_click$y)],]
   
-  #  projData <- projData[round(input$projtimeline_click$y),]
   wellPanel(
     titlePanel(projData$Project.Short.Name),
     HTML(paste(
@@ -57,21 +67,24 @@ output$projTimelineSummary <- renderUI({
 # ===================== Comms Plan Timelines ================================
 
 output$commsPlanMultiDayUI <- renderUI({
-  plotOutput("commsPlanMultiDay",
+  plotOutput("commsPlanMultiDay", height = 500,
              click = "commsPlanMultiDay_click")
 })
 
 output$commsPlanMultiDay <- renderPlot({
-  base <- ggplot(dat,
-                 aes(Start.Date, Action, color = Comms.Type, order = Source))
+  comms.df <-
+    subset(
+      commsplanMultiDay.df, Comms.Type %in% input$selCommsType &
+        Source %in% input$selCommsSource
+    )
+  if (nrow(comms.df) == 0)
+    return()
   
-  base + geom_segment(
-    aes(
-      xend = End.Date,ystart = Action,yend = Action
-    ), color = "black", size = 5
-  ) + geom_segment(aes(
-    xend = End.Date,ystart = Action,yend = Action
-  ),size = 4) + scale_y_discrete(breaks = NULL) +
+  base <-
+    ggplot(comms.df, aes(x = Start.Date, y = taskID, color = Comms.Type))
+  base +
+    scale_y_discrete(breaks = NULL) +
+    geom_segment(aes(xend = End.Date, y = taskID, yend = taskID), size = 5) +
     facet_grid(Source ~ .,scale = "free_y",space = "free_y", drop = TRUE)
 })
 
@@ -81,33 +94,20 @@ output$commsPlanMultiDaySummary <- renderUI({
   comms.df <- commsplanMultiDay.df
   
   slction <-
-    subset(comms.df, subset = Source == input$commsPlanMultiDay_click$panelvar1)[round(input$commsPlanMultiDay_click$y),]
+    subset(comms.df, subset = Source == input$commsPlanMultiDay_click$panelvar1)
+  slction <- slction[rev(order(slction$Start.Date,slction$Action)),]
+  slction <- slction[round(input$commsPlanMultiDay_click$y),]
   
-  #  print(str(input$commsPlanMultiDay_click))
-  #  print(subset(comms.df, subset = Source == input$commsPlanMultiDay_click$panelvar1))
-  print(subset(comms.df, subset = Source == input$commsPlanMultiDay_click$panelvar1))
-  
-  #  commsDf <- commsplanMultiDay.df
-  
-  #  commsDf <-
-  #    commsDf[order(commsDf$Source)[round(input$projtimeline_click$y)],]
-  
-  #  commsDf <- commsDf[round(input$projtimeline_click$y),]
-  wellPanel(
-    titlePanel(slction$Action),
-    slction$Source,
-    slction$Start.Date,
-    slction$End.Date
-    #     HTML(paste(
-    #       "<b>Budget Requested:</b> £",as.character(commsDf$Budget.Requested),"<p>"
-    #     )),
-    #     HTML(
-    #       paste(
-    #         "<a href='",commsDf$Dummy.Link,"'>",commsDf$Dummy.Link,"</a><p>"
-    #       )
-    #     ),
-    #     HTML(newlineFn(commsDf$Project.Summary))
-  )
+  wellPanel(titlePanel(slction$Action),
+            HTML(paste(
+              "<b>Comms Type:</b>",as.character(slction$Comms.Type),"<p>"
+            )),
+            HTML(paste(
+              "<b>Start Date:</b>",as.character(slction$Start.Date),"<p>"
+            )),
+            HTML(paste(
+              "<b>End Date:</b>",as.character(slction$End.Date),"<p>"
+            )))
 })
 # ===================== Budget Treemap Outputs ===============================
 

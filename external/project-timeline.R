@@ -18,9 +18,8 @@ tabPanel("Project Timeline",
              )
            ),
            column(
-             6,selectInput(
-               "projTimelineFilter", "Choose a dataset:",
-               choices = c("rock", "pressure", "cars")
+             6, selectInput(
+               'selITBoard', 'IT Boards', allITBoards, selected = allITBoards,  multiple = TRUE, selectize = TRUE
              )
            )),
            uiOutput("projtimelineUI"),

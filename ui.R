@@ -7,6 +7,9 @@ library(shinythemes)
 
 earliest.proj.start <- min(projects.df$Project.Start.Date)
 lastest.proj.end <- max(projects.df$Project.End.Date)
+allCommsTypes <- levels(commsplanMultiDay.df$Comms.Type)
+allCommsSources <- levels(commsplanMultiDay.df$Source)
+allITBoards <- levels(projects.df$IT.Board)
 
 # UI Elements
 
