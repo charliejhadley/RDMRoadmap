@@ -21,6 +21,7 @@ shinyUI(fluidPage(
   navbarPage(theme = shinytheme("cerulean"),
              "",
              source("external/about.R", local = TRUE)$value,
+             source("external/data-lifecycle.R", local = TRUE)$value,
              source("external/project-timeline.R", local = TRUE)$value,
              source("external/resource-comparison.R", local = TRUE)$value,
              source("external/commsPlans.R", local = TRUE)$value

@@ -1,5 +1,13 @@
 # App body for RDM Roadmap Dashboard
 
+## ======== Life cycle Diagram =============
+
+getLifeCycle<-function() {
+  return(includeHTML("external/lifecycleTest.html"))
+}
+
+output$lifeCycle<-renderUI({getLifeCycle()})
+
 # ===================== Project Timeline Outputs ===============================
 output$projtimelineUI <- renderUI({
   plotOutput("projtimeline", height = 300,
