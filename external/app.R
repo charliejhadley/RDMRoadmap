@@ -137,7 +137,7 @@ output$projTimelineSummary <- renderUI({
   wellPanel(
     titlePanel(projData$Project.Short.Name),
     HTML(paste(
-      "<b>Budget Requested:</b> £",as.character(projData$Budget.Requested),"<p>"
+      "<b>Budget Requested:</b> ",paste("£",format(projData$Budget.Requested, big.mark=","),sep=""),"<p>"
     )),
     HTML(
       paste(
@@ -268,7 +268,7 @@ output$resourceTreemapSummary <-
     projData <- projects.df[projects.df$Project.Short.Name == getTreemapClickID()$Project.Short.Name,]
     wellPanel(titlePanel(projData$Project.Short.Name),
               HTML(paste(
-                "<b>Budget Requested:</b> £",as.character(projData$Budget.Requested),"<p>"
+                "<b>Budget Requested:</b> ",paste("£",format(projData$Budget.Requested, big.mark=","),sep=""),"<p>"
               )),
               HTML(newlineFn(projData$Project.Summary)))
   })
