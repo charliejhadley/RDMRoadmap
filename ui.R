@@ -3,18 +3,6 @@
 # Packages to load
 library(shinythemes)
 
-## Useful variables
-
-# earliest.proj.start <- min(projects.df$Project.Start.Date)
-# lastest.proj.end <- max(projects.df$Project.End.Date)
-# allCommsTypes <- levels(commsplanMultiDay.df$Comms.Type)
-# allCommsSources <- levels(commsplanMultiDay.df$Source)
-# allITBoards <- levels(projects.df$IT.Board)
-
-# UI Elements
-
-
-# Shiny UI
 
 shinyUI(fluidPage(
   tags$style(type="text/css", "body { overflow-y: scroll; }"),
