@@ -64,11 +64,13 @@ commsplanMultiDay.df$taskID <<-
 
 # ===================== Project Timeline Outputs ===============================
 
-earliest.proj.start <- reactive(year(min(projects.df$Project.Start.Date)))
-latest.proj.start <- reactive(year(max(projects.df$Project.End.Date)))
+earliest.proj.start <-
+  reactive(year(min(projects.df$Project.Start.Date)))
+latest.proj.start <-
+  reactive(year(max(projects.df$Project.End.Date)))
 allITBoards <- reactive(levels(projects.df$IT.Board))
 
-output$projTimeSliderUI <-renderUI({
+output$projTimeSliderUI <- renderUI({
   sliderInput(
     "projTimelineRange", "Range:",
     min = earliest.proj.start(),
@@ -127,10 +129,6 @@ output$projTimelineSummary <- renderUI({
                   projects.df$Project.End.Date <= paste(input$projTimelineRange[2],"12","31",sep =
                                                           "-"),]
   
-  #   projData <-
-  #     projData[order(projData$Budget.Requested)[round(input$projtimeline_click$y)],]
-  
-  ## Note use of `rev` to accommodate use of ggplot later
   projData <-
     projData[order(projData$Budget.Requested, projData$Project.Short.Name),]
   projData <- projData[round(input$projtimeline_click$y),]
@@ -188,7 +186,8 @@ output$commsPlanMultiDay <- renderPlot({
     ggplot(comms.df, aes(x = Start.Date, y = taskID, color = Comms.Type))
   base +
     scale_y_discrete(breaks = NULL) +
-    geom_segment(aes(xend = End.Date, y = taskID, yend = taskID), size = 5) +
+    geom_segment(aes(xend = End.Date, y = taskID, yend = taskID), size = 5, color = "black") +
+    geom_segment(aes(xend = End.Date, y = taskID, yend = taskID), size = 4) +
     facet_grid(Source ~ .,scale = "free_y",space = "free_y", drop = TRUE)
 })
 
@@ -261,31 +260,12 @@ getTreemapClickID <- reactive({
   }
 })
 
-getTreemapData <- reactive({
-  l <- getTreemapClickID()
-  
-  # create summary line on hover
-  sizeID <- which(names(l) == "vSize")
-  id <- switch(
-    "value",
-    comp = sizeID + 2,
-    dens = sizeID + 2,
-    value = sizeID + 1,
-    index = sizeID,
-    categorical = sizeID + 1,
-    depth = sizeID,
-    color = sizeID
-  )
-  l <- l[1:id]
-  names(l)[sizeID] <- "Budget.Requested"
-  dt <- as.data.frame(l)
-})
-
 output$resourceTreemapSummary <-
   renderUI({
-    if (is.null(input$resourceTreemap_click$x))
+    if (is.null(input$resourceTreemap_click$x)|is.null(getTreemapClickID()$Project.Short.Name))
       return(NULL)
-    projData <- getTreemapData()
+    
+    projData <- projects.df[projects.df$Project.Short.Name == getTreemapClickID()$Project.Short.Name,]
     wellPanel(titlePanel(projData$Project.Short.Name),
               HTML(paste(
                 "<b>Budget Requested:</b> £",as.character(projData$Budget.Requested),"<p>"
