@@ -1,6 +1,5 @@
 
+
 tabPanel("Lifecycle",
-  fluidPage(
-  htmlOutput("lifeCycle")     
-  )
-)
+         fluidPage(
+         htmlOutput("lifeCycle")))

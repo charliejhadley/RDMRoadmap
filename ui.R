@@ -18,12 +18,13 @@ allITBoards <- levels(projects.df$IT.Board)
 
 shinyUI(fluidPage(
   titlePanel("Research Data Management Roadmap"),
-  navbarPage(theme = shinytheme("cerulean"),
-             "",
-             source("external/about.R", local = TRUE)$value,
-             source("external/data-lifecycle.R", local = TRUE)$value,
-             source("external/project-timeline.R", local = TRUE)$value,
-             source("external/resource-comparison.R", local = TRUE)$value,
-             source("external/commsPlans.R", local = TRUE)$value
-)
+  navbarPage(
+    theme = shinytheme("cerulean"),
+    "",
+    source("external/about.R", local = TRUE)$value,
+    source("external/data-lifecycle.R", local = TRUE)$value,
+    source("external/project-timeline.R", local = TRUE)$value,
+    source("external/resource-comparison.R", local = TRUE)$value,
+    source("external/commsPlans.R", local = TRUE)$value
+  )
 ))
