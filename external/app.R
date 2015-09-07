@@ -119,27 +119,9 @@ output$commsPlanMultiDaySummary <- renderUI({
 })
 # ===================== Budget Treemap Outputs ===============================
 
-output$resourceTreemapUI <- renderUI({
-  plotOutput("resourceTreemap", height = 500,
-             click = "resourceTreemap_click")
-})
-
-e <- environment()
-
-output$resourceTreemap <- renderPlot({
-  tm <- treemap(
-    projects.df,
-    index = "Project.Short.Name",
-    vSize = "Budget.Requested",
-    vColor = "Budget.Requested",
-    type = "value",
-    title = ""
-  )
-  assign("tm", tm, envir = e)
-})
-
 tmLocate <- function(coor, tmSave) {
   tm <- tmSave$tm
+  
   # retrieve selected rectangle
   rectInd <- which(tm$x0 < coor[1] &
                      (tm$x0 + tm$w) > coor[1] &
@@ -148,10 +130,11 @@ tmLocate <- function(coor, tmSave) {
   
   return(tm[rectInd[1],])
 }
+e <- environment()
 
 getTreemapClickID <- reactive({
-  x <- input$resourceTreemap_click$x
-  y <- input$resourceTreemap_click$y
+  x <- input$click$x
+  y <- input$click$y
   if (!is.null(tm)) {
     x <- (x - tm$vpCoorX[1]) / (tm$vpCoorX[2] - tm$vpCoorX[1])
     y <- (y - tm$vpCoorY[1]) / (tm$vpCoorY[2] - tm$vpCoorY[1])
@@ -185,11 +168,23 @@ getTreemapData <- reactive({
   dt <- as.data.frame(l)
 })
 
-output$resourceTreemapSummary <-
+output$treemapUI <- renderPlot({
+  tm <- treemap(
+    projects.df,
+    index = "Project.Short.Name",
+    vSize = "Budget.Requested",
+    vColor = "Budget.Requested",
+    type = "value",
+    title = ""
+  )
+  assign("tm", tm, envir = e)
+})
+
+output$treemapSummary <-
   renderUI({
-    if (is.null(getTreemapClickID()))
-      return(NULL)
     projData <- getTreemapData()
+    if (is.null(input$click$x))
+      return()
     wellPanel(titlePanel(projData$Project.Short.Name),
               HTML(paste(
                 "<b>Budget Requested:</b> £",as.character(projData$Budget.Requested),"<p>"

@@ -2,7 +2,7 @@
 
 tabPanel("Resource Comparison",
          fluidPage(
-           uiOutput("resourceTreemapUI"),
-           htmlOutput("resourceTreemapSummary")
+           plotOutput("treemapUI", hover = "hover", click = "click"),
+           htmlOutput("treemapSummary")
          )
 )
