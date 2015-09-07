@@ -3,16 +3,10 @@
 tabPanel("Communication Plans",
          fluidPage(
            fluidRow(column(
-             6,selectInput(
-               'selCommsType', 'Communication Types', allCommsTypes, selected = allCommsTypes,  multiple =
-                 TRUE, selectize = TRUE
-             )
+             6,uiOutput("commsCommTypesUI")
            ),
            column(
-             6, selectInput(
-               'selCommsSource', 'Communication Plans', allCommsSources, selected = allCommsSources,  multiple =
-                 TRUE, selectize = TRUE
-             )
+             6, uiOutput("commsCommSourcesUI")
            )),
            uiOutput(
              "commsPlanMultiDayUI", hover = "hover", click = "click", height = "auto"

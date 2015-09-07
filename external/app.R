@@ -1,46 +1,119 @@
 # App body for RDM Roadmap Dashboard
 
+## ================ Projects Sheet Loading and Manipulation ==================
+projects.sheet <-
+  gs_key("1I6Z94prfJrmSSmD_mwqazkp8Qx8AUmmsp9hAW6bF8yQ",
+         visibility = "public")
+projects.df <<- gs_read(projects.sheet)
+projects.df$Project.Start.Date <<-
+  as.POSIXct(projects.df$Project.Start.Date)
+projects.df$Project.End.Date <<-
+  as.POSIXct(projects.df$Project.End.Date)
+projects.df$Project.Short.Name <<-
+  as.character(projects.df$Project.Short.Name)
+projects.df$IT.Board <<- as.factor(projects.df$IT.Board)
+projects.df$Project.Sponsor <<-
+  as.factor(projects.df$Project.Sponsor)
+projects.df$Project.Manager <<-
+  as.factor(projects.df$Project.Manager)
+projects.df$Senior.Supplier <<-
+  as.factor(projects.df$Senior.Supplier)
+projects.df$Senior.User <<- as.factor(projects.df$Senior.User)
+## Re-order data.frame according to this: http://stackoverflow.com/a/32333974/1659890
+## Note use of `rev` to accommodate use of ggplot later
+projects.df <<-
+  projects.df[rev(order(
+    projects.df$Budget.Requested, projects.df$Project.Short.Name
+  )),]
+projects.df$projectID <<- as.factor(nrow(projects.df):1)
+
+## ==================  Comms Plan (Multi-day, non-repeating) ============================
+commsplanMultiDay.sheet <-
+  gs_key("1ZWxJhJM9p6UaoQnBOHUsuyfht40OaEw4qKybVdFtjTc",
+         visibility = "public")
+commsplanMultiDay.df <<- gs_read(commsplanMultiDay.sheet)
+commsplanMultiDay.df$Action <<-
+  as.factor(commsplanMultiDay.df$Action)
+commsplanMultiDay.df$Start.Date <<-
+  as.POSIXct(commsplanMultiDay.df$Start.Date)
+commsplanMultiDay.df$End.Date <<-
+  as.POSIXct(commsplanMultiDay.df$End.Date)
+commsplanMultiDay.df$Comms.Type <<-
+  as.factor(commsplanMultiDay.df$Comms.Type)
+commsplanMultiDay.df$Source <<-
+  as.factor(commsplanMultiDay.df$Source)
+commsplanMultiDay.df$Department <<-
+  as.factor(commsplanMultiDay.df$Department)
+commsplanMultiDay.df$Audience <<-
+  as.factor(commsplanMultiDay.df$Audience)
+## Re-order data.frame according to this: http://stackoverflow.com/a/32333974/1659890
+commsplanMultiDay.df$Action <<-
+  as.character(commsplanMultiDay.df$Action)
+commsplanMultiDay.df <<-
+  commsplanMultiDay.df[order(commsplanMultiDay.df$Start.Date, commsplanMultiDay.df$Action),]
+commsplanMultiDay.df$taskID <<-
+  as.factor(nrow(commsplanMultiDay.df):1)
+
 ## ======== Life cycle Diagram =============
 
-getLifeCycle<-function() {
-  return(includeHTML("external/lifecycleTest.html"))
-}
-
-output$lifeCycle<-renderUI({getLifeCycle()})
+# getLifeCycle<-function() {
+#   return(includeHTML("external/lifecycleTest.html"))
+# }
+#
+# output$lifeCycle<-renderUI({getLifeCycle()})
 
 # ===================== Project Timeline Outputs ===============================
+
+earliest.proj.start <- reactive(year(min(projects.df$Project.Start.Date)))
+latest.proj.start <- reactive(year(max(projects.df$Project.End.Date)))
+allITBoards <- reactive(levels(projects.df$IT.Board))
+
+output$projTimeSliderUI <-renderUI({
+  sliderInput(
+    "projTimelineRange", "Range:",
+    min = earliest.proj.start(),
+    max = latest.proj.start(),
+    step = 1,
+    value = c(earliest.proj.start(),latest.proj.start())
+  )
+})
+
+output$projITBoardUI <- renderUI({
+  selectInput(
+    'selITBoard', 'IT Boards', allITBoards(), selected = allITBoards(),  multiple = TRUE, selectize = TRUE
+  )
+})
+
 output$projtimelineUI <- renderUI({
   plotOutput("projtimeline", height = 300,
              click = "projtimeline_click")
 })
 
 output$projtimeline <- renderPlot({
-  proj.df <- subset(projects.df, subset = IT.Board %in% input$selITBoard)
+  proj.df <-
+    subset(projects.df, subset = IT.Board %in% input$selITBoard)
   
   proj.df <-
     proj.df[proj.df$Project.Start.Date >= paste(input$projTimelineRange[1],"01","01",sep =
-                                                          "-") &
-                  proj.df$Project.End.Date <= paste(input$projTimelineRange[2],"12","31",sep =
-                                                          "-"),]
+                                                  "-") &
+              proj.df$Project.End.Date <= paste(input$projTimelineRange[2],"12","31",sep =
+                                                  "-"),]
   
   if (nrow(proj.df) == 0)
     return(NULL)
   
-  base <-
-    ggplot(proj.df, aes(x = Project.Start.Date, y = taskID, color = as.factor(IT.Board)))
-  base +
-    scale_y_discrete(breaks = proj.df$taskID, labels = proj.df$Project.Short.Name) +
-    geom_segment(aes(xend = Project.End.Date, y = taskID, yend = taskID), size = 5)
+  ## Note use of `rev` to accommodate use of ggplot later
+  proj.df <-
+    proj.df[rev(order(proj.df$Budget.Requested, proj.df$Project.Short.Name)),]
   
-## OLD WORKING
-#   base <- ggplot(
-#     proj.df,
-#     aes(
-#       Project.Short.Name, Project.Start.Date, ymin = Project.Start.Date,color =
-#         as.factor(IT.Board),ymax = Project.End.Date,xticks,order = Budget.Requested
-#     )
-#   ) + xlab("Project.Short.Name")
-#   base + geom_linerange(size = 4,alpha = .7) +  coord_flip()  + scale_colour_brewer(palette = "Spectral")
+  base <-
+    ggplot(proj.df, aes(
+      x = Project.Start.Date, y = projectID, color = as.factor(IT.Board)
+    ))
+  base +
+    scale_y_discrete(breaks = proj.df$projectID, labels = proj.df$Project.Short.Name) +
+    geom_segment(aes(xend = Project.End.Date, y = projectID, yend = projectID), size = 5)
+  
 })
 
 
@@ -54,8 +127,16 @@ output$projTimelineSummary <- renderUI({
                   projects.df$Project.End.Date <= paste(input$projTimelineRange[2],"12","31",sep =
                                                           "-"),]
   
+  #   projData <-
+  #     projData[order(projData$Budget.Requested)[round(input$projtimeline_click$y)],]
+  
+  ## Note use of `rev` to accommodate use of ggplot later
   projData <-
-    projData[order(projData$Budget.Requested)[round(input$projtimeline_click$y)],]
+    projData[order(projData$Budget.Requested, projData$Project.Short.Name),]
+  print(projData$Project.Short.Name)
+  print(round(input$projtimeline_click$y))
+  projData <- projData[round(input$projtimeline_click$y),]
+  
   
   wellPanel(
     titlePanel(projData$Project.Short.Name),
@@ -73,6 +154,23 @@ output$projTimelineSummary <- renderUI({
 
 
 # ===================== Comms Plan Timelines ================================
+
+allCommsTypes <- reactive(levels(commsplanMultiDay.df$Comms.Type))
+allCommsSources <- reactive(levels(commsplanMultiDay.df$Source))
+
+output$commsCommTypesUI <- renderUI({
+  selectInput(
+    'selCommsType', 'Communication Types', allCommsTypes(), selected = allCommsTypes(),  multiple =
+      TRUE, selectize = TRUE
+  )
+})
+
+output$commsCommSourcesUI <- renderUI({
+  selectInput(
+    'selCommsSource', 'Communication Plans', allCommsSources(), selected = allCommsSources(),  multiple =
+      TRUE, selectize = TRUE
+  )
+})
 
 output$commsPlanMultiDayUI <- renderUI({
   plotOutput("commsPlanMultiDay", height = 500,

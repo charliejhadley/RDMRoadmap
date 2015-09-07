@@ -5,22 +5,10 @@
 tabPanel("Project Timeline",
          fluidPage(
            fluidRow(column(
-             6,sliderInput(
-               "projTimelineRange", "Range:",
-               min = as.numeric(format(earliest.proj.start,"%Y")),
-               max = as.numeric(format(lastest.proj.end,"%Y")),
-               step = 1,
-               value = c(as.numeric(format(
-                 earliest.proj.start,"%Y"
-               )),as.numeric(format(
-                 lastest.proj.end,"%Y"
-               )))
-             )
+             6,uiOutput("projTimeSliderUI")
            ),
            column(
-             6, selectInput(
-               'selITBoard', 'IT Boards', allITBoards, selected = allITBoards,  multiple = TRUE, selectize = TRUE
-             )
+             6, uiOutput("projITBoardUI")
            )),
            uiOutput("projtimelineUI"),
            ## Selected point output,
