@@ -1,7 +1,9 @@
 # About Section for RDM Roadmap Dashboard
 
-tabPanel("About",
-         HTML('
+tabPanel("About this tool",
+         tabsetPanel("foo",
+           tabPanel("RDM at Oxford",
+         fluidPage(HTML('
               <p style="text-align:justify">This R Shiny web app is currently under development.
               The data in the app concern Research Data Management projects undertaken by University of Oxford.</p>
               
@@ -23,6 +25,9 @@ tabPanel("About",
                     HTML('<ul>'),
                     HTML('</ul>'))
            )
-         ),
-         value="about"
          )
+         )),
+         tabPanel("Adding data to these plans",
+                  "I've not been implemented yet")
+         )
+)
