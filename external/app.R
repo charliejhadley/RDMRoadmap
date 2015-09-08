@@ -4,7 +4,7 @@
 projects.sheet <-
   gs_key("1I6Z94prfJrmSSmD_mwqazkp8Qx8AUmmsp9hAW6bF8yQ",
          visibility = "public")
-projects.df <- gs_read(projects.sheet)
+projects.df <- gs_read(projects.sheet, ws = "Approved-Data")
 projects.df$Project.Start.Date <-
   as.POSIXct(projects.df$Project.Start.Date)
 projects.df$Project.End.Date <-
