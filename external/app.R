@@ -123,7 +123,7 @@ output$projtimeline <- renderPlot({
     gantt + scale_x_datetime(
       breaks = "3 month", labels = date_format("%Y-%b"), minor_breaks = "3 month"
     )
-  gantt + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  gantt + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + geom_vline(xintercept = as.integer(as.POSIXct(today())), linetype = "dashed")
   
 })
 
@@ -157,6 +157,17 @@ output$projTimelineSummary <- renderUI({
 )
 })
 
+## Show projects.df as a DataTable
+
+output$projectsDataTableColUI <- renderUI(selectInput('proj_Cols', 'Columns to show:',
+                                                          names(projects.df)[1:(ncol(projects.df)-1)], selected = c("Project.Short.Name","Project.Start.Date",
+                                                                                                                    "Project.End.Date","Project.Summary"), 
+                                                          multiple = TRUE))
+
+output$projectsDataTable <- renderDataTable(
+  projects.df[, input$proj_Cols, drop = FALSE],
+  option = list( drawCallback = I("function( settings ) {document.getElementById('ex1').style.width = '100%';}")) 
+)
 
 # ===================== Comms Plan Timelines ================================
 
@@ -226,7 +237,7 @@ output$commsPlanMultiDay <- renderPlot({
     gantt + scale_x_datetime(
       breaks = "3 month", labels = date_format("%Y-%b"), minor_breaks = "3 month"
     )
-  gantt + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  gantt + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + geom_vline(xintercept = as.integer(as.POSIXct(today())), linetype = "dashed")
   
 })
 
@@ -262,6 +273,12 @@ output$commsPlanMultiDaySummary <- renderUI({
             )),
             HTML(paste(
               "<b>Source:</b>",as.character(slction$Source),"<p>"
+            )),
+            
+            
+            
+            HTML(paste(
+              "<b>Contacts:</b>",gsub(pattern = "\n", replacement = ", ", x = as.character(slction$Contacts)),"<p>"
             )),
             HTML(newlineFn(slction$Description))
             )
