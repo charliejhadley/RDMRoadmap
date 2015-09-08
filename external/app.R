@@ -4,28 +4,28 @@
 projects.sheet <-
   gs_key("1I6Z94prfJrmSSmD_mwqazkp8Qx8AUmmsp9hAW6bF8yQ",
          visibility = "public")
-projects.df <<- gs_read(projects.sheet)
-projects.df$Project.Start.Date <<-
+projects.df <- gs_read(projects.sheet)
+projects.df$Project.Start.Date <-
   as.POSIXct(projects.df$Project.Start.Date)
-projects.df$Project.End.Date <<-
+projects.df$Project.End.Date <-
   as.POSIXct(projects.df$Project.End.Date)
-projects.df$Project.Short.Name <<-
+projects.df$Project.Short.Name <-
   as.character(projects.df$Project.Short.Name)
-projects.df$IT.Board <<- as.factor(projects.df$IT.Board)
-projects.df$Project.Sponsor <<-
+projects.df$IT.Board <- as.factor(projects.df$IT.Board)
+projects.df$Project.Sponsor <-
   as.factor(projects.df$Project.Sponsor)
-projects.df$Project.Manager <<-
+projects.df$Project.Manager <-
   as.factor(projects.df$Project.Manager)
-projects.df$Senior.Supplier <<-
+projects.df$Senior.Supplier <-
   as.factor(projects.df$Senior.Supplier)
-projects.df$Senior.User <<- as.factor(projects.df$Senior.User)
+projects.df$Senior.User <- as.factor(projects.df$Senior.User)
 ## Re-order data.frame according to this: http://stackoverflow.com/a/32333974/1659890
 ## Note use of `rev` to accommodate use of ggplot later
-projects.df <<-
+projects.df <-
   projects.df[rev(order(
     projects.df$Budget.Requested, projects.df$Project.Short.Name
   )),]
-projects.df$projectID <<- as.factor(nrow(projects.df):1)
+projects.df$projectID <- as.factor(nrow(projects.df):1)
 
 ## ==================  Comms Plan (Multi-day, non-repeating) ============================
 commsplanMultiDay.sheet <-
@@ -72,7 +72,7 @@ allITBoards <- reactive(levels(projects.df$IT.Board))
 
 output$projTimeSliderUI <- renderUI({
   sliderInput(
-    "projTimelineRange", "Range:",
+    "projTimelineRange", "Time period of interest:",
     min = earliest.proj.start(),
     max = latest.proj.start(),
     step = 1,
@@ -112,9 +112,18 @@ output$projtimeline <- renderPlot({
     ggplot(proj.df, aes(
       x = Project.Start.Date, y = projectID, color = as.factor(IT.Board)
     ))
-  base +
-    scale_y_discrete(breaks = proj.df$projectID, labels = proj.df$Project.Short.Name) +
-    geom_segment(aes(xend = Project.End.Date, y = projectID, yend = projectID), size = 5)
+  gantt <- {
+    base +
+      scale_y_discrete(breaks = proj.df$projectID, labels = proj.df$Project.Short.Name) +
+      geom_segment(aes(xend = Project.End.Date, y = projectID, yend = projectID), size = 5)
+  }
+  gantt <-
+    gantt + ylab(NULL) + xlab(NULL) + labs(color = "IT Board") + guides(color = guide_legend(title.hjust = 0.5))
+  gantt <-
+    gantt + scale_x_datetime(
+      breaks = "3 month", labels = date_format("%Y-%b"), minor_breaks = "3 month"
+    )
+  gantt + theme(axis.text.x = element_text(angle = 45, hjust = 1))
   
 })
 
@@ -130,29 +139,43 @@ output$projTimelineSummary <- renderUI({
                                                           "-"),]
   
   projData <-
+    subset(projData, subset = IT.Board %in% input$selITBoard)
+  
+  projData <-
     projData[order(projData$Budget.Requested, projData$Project.Short.Name),]
   projData <- projData[round(input$projtimeline_click$y),]
   
   
   wellPanel(
     titlePanel(projData$Project.Short.Name),
-    HTML(paste(
-      "<b>Budget Requested:</b> ",paste("£",format(projData$Budget.Requested, big.mark=","),sep=""),"<p>"
-    )),
-    HTML(
-      paste(
-        "<a href='",projData$Dummy.Link,"'>",projData$Dummy.Link,"</a><p>"
-      )
-    ),
-    HTML(newlineFn(projData$Project.Summary))
-  )
+    HTML(paste("<b>Project Manager:</b> ",projData$Project.Manager,"<p>")),
+    HTML(paste("<b>Project Sponsor:</b> ",projData$Project.Sponsor,"<p>")),
+    HTML(paste("<b>Budget Requested:</b> ",
+               paste("£",format(projData$Budget.Requested, big.mark = ","),sep = ""),"<p>")),
+    # HTML(paste("<a href='",projData$Dummy.Link,"'>",projData$Dummy.Link,"</a><p>")),
+  HTML(newlineFn(projData$Project.Summary))
+)
 })
 
 
 # ===================== Comms Plan Timelines ================================
 
+earliest.comms.start <-
+  reactive(year(min(commsplanMultiDay.df$Start.Date)))
+latest.comms.start <-
+  reactive(year(max(commsplanMultiDay.df$End.Date)))
 allCommsTypes <- reactive(levels(commsplanMultiDay.df$Comms.Type))
 allCommsSources <- reactive(levels(commsplanMultiDay.df$Source))
+
+output$commsTimeSliderUI <- renderUI({
+  sliderInput(
+    "commsTimelineRange", "Time period of interest:",
+    min = earliest.comms.start(),
+    max = latest.comms.start(),
+    step = 1,
+    value = c(earliest.comms.start(),latest.comms.start())
+  )
+})
 
 output$commsCommTypesUI <- renderUI({
   selectInput(
@@ -179,16 +202,32 @@ output$commsPlanMultiDay <- renderPlot({
       commsplanMultiDay.df, Comms.Type %in% input$selCommsType &
         Source %in% input$selCommsSource
     )
+  
+  comms.df <-
+    comms.df[comms.df$Start.Date >= paste(input$commsTimelineRange[1],"01","01",sep =
+                                                          "-") &
+               comms.df$End.Date <= paste(input$commsTimelineRange[2],"12","31",sep =
+                                                          "-"),]
+  
   if (nrow(comms.df) == 0)
     return()
   
-  base <-
-    ggplot(comms.df, aes(x = Start.Date, y = taskID, color = Comms.Type))
-  base +
-    scale_y_discrete(breaks = NULL) +
-    geom_segment(aes(xend = End.Date, y = taskID, yend = taskID), size = 5, color = "black") +
-    geom_segment(aes(xend = End.Date, y = taskID, yend = taskID), size = 4) +
-    facet_grid(Source ~ .,scale = "free_y",space = "free_y", drop = TRUE)
+  base <- ggplot(comms.df, aes(x = Start.Date, y = taskID, color = Comms.Type))
+  gantt <- {
+    base +
+      scale_y_discrete(breaks = NULL) +
+      geom_segment(aes(xend = End.Date, y = taskID, yend = taskID), size = 5, color = "black") +
+      geom_segment(aes(xend = End.Date, y = taskID, yend = taskID), size = 4) +
+      facet_grid(Source ~ .,scale = "free_y",space = "free_y", drop = TRUE)
+  }
+  gantt <-
+    gantt + ylab(NULL) + xlab(NULL) + labs(color = "Comms Type") + guides(color = guide_legend(title.hjust = 0.5))
+  gantt <-
+    gantt + scale_x_datetime(
+      breaks = "3 month", labels = date_format("%Y-%b"), minor_breaks = "3 month"
+    )
+  gantt + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
 })
 
 output$commsPlanMultiDaySummary <- renderUI({
@@ -198,19 +237,34 @@ output$commsPlanMultiDaySummary <- renderUI({
   
   slction <-
     subset(comms.df, subset = Source == input$commsPlanMultiDay_click$panelvar1)
+  
+  slction <-
+    subset(
+      slction, Comms.Type %in% input$selCommsType &
+        Source %in% input$selCommsSource
+    )
+  
+  slction <-
+    slction[slction$Start.Date >= paste(input$commsTimelineRange[1],"01","01",sep =
+                                            "-") &
+              slction$End.Date <= paste(input$commsTimelineRange[2],"12","31",sep =
+                                            "-"),]
+  
   slction <- slction[rev(order(slction$Start.Date,slction$Action)),]
   slction <- slction[round(input$commsPlanMultiDay_click$y),]
   
   wellPanel(titlePanel(slction$Action),
             HTML(paste(
+              "<b>Delivery Window:</b>",as.character(slction$Start.Date), " - ",as.character(slction$End.Date),"<p>"
+            )),
+            HTML(paste(
               "<b>Comms Type:</b>",as.character(slction$Comms.Type),"<p>"
             )),
             HTML(paste(
-              "<b>Start Date:</b>",as.character(slction$Start.Date),"<p>"
+              "<b>Source:</b>",as.character(slction$Source),"<p>"
             )),
-            HTML(paste(
-              "<b>End Date:</b>",as.character(slction$End.Date),"<p>"
-            )))
+            HTML(newlineFn(slction$Description))
+            )
 })
 # ===================== Budget Treemap Outputs ===============================
 
@@ -228,7 +282,7 @@ output$resourceTreemap <- renderPlot({
     vSize = "Budget.Requested",
     vColor = "Budget.Requested",
     type = "value",
-    title = ""
+    title = "", position.legend = "none"
   )
   assign("tm", tm, envir = e)
 })
@@ -260,15 +314,29 @@ getTreemapClickID <- reactive({
   }
 })
 
+treeCheck <- function(x) try(x)
+
 output$resourceTreemapSummary <-
   renderUI({
-    if (is.null(input$resourceTreemap_click$x)|is.null(getTreemapClickID()$Project.Short.Name))
+    
+    # print(getTreemapClickID()$Project.Short.Name)
+    
+    if (class(try(getTreemapClickID()))=="try-error")
+      return(NULL)
+    if(try(is.null(getTreemapClickID()$Project.Short.Name), silent = TRUE))
       return(NULL)
     
-    projData <- projects.df[projects.df$Project.Short.Name == getTreemapClickID()$Project.Short.Name,]
-    wellPanel(titlePanel(projData$Project.Short.Name),
-              HTML(paste(
-                "<b>Budget Requested:</b> ",paste("£",format(projData$Budget.Requested, big.mark=","),sep=""),"<p>"
-              )),
-              HTML(newlineFn(projData$Project.Summary)))
+    projData <-
+      projects.df[projects.df$Project.Short.Name == getTreemapClickID()$Project.Short.Name,]
+
+    wellPanel(
+      titlePanel(projData$Project.Short.Name),
+      HTML(paste("<b>Project Manager:</b> ",projData$Project.Manager,"<p>")),
+      HTML(paste("<b>Project Sponsor:</b> ",projData$Project.Sponsor,"<p>")),
+      HTML(paste("<b>Budget Requested:</b> ",
+                 paste("£",format(projData$Budget.Requested, big.mark = ","),sep = ""),"<p>")),
+      # HTML(paste("<a href='",projData$Dummy.Link,"'>",projData$Dummy.Link,"</a><p>")),
+      HTML(newlineFn(projData$Project.Summary))
+    )
+    
   })

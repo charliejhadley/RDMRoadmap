@@ -7,6 +7,7 @@ library(treemap)
 library(dplyr)
 library(lubridate)
 library(googlesheets)
+library(scales)
 
 ## ======================= Utility Functions =====================
 

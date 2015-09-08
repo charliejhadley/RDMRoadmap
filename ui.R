@@ -7,10 +7,9 @@ library(shinythemes)
 shinyUI(fluidPage(
   tags$style(type="text/css", "body { overflow-y: scroll; }"),
   theme = shinytheme("cerulean"),
-  titlePanel("Research Data Management Roadmap"),
   navbarPage(
     theme = shinytheme("cerulean"),
-    "",
+    "Research Data Management Roadmap",
     source("external/about.R", local = TRUE)$value,
     #             source("external/data-lifecycle.R", local = TRUE)$value,
     source("external/project-timeline.R", local = TRUE)$value,
