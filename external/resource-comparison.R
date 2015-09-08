@@ -1,6 +1,7 @@
 # Treemap for RDM Roadmap Dashboard
 
-tabPanel("Resource Comparison",
+navbarMenu("RDM Resources",
+           tabPanel("Project Budget Comparison",
          fluidPage(
            wellPanel(
              HTML("This Treemap displays all RDM-related projects included in the 'Projects Timeline', 
@@ -10,5 +11,7 @@ tabPanel("Resource Comparison",
              ),
            uiOutput("resourceTreemapUI"),
            htmlOutput("resourceTreemapSummary")
-         )
+         )),
+         tabPanel("Projects Split by Staff",
+                  "I've not been implemented yet")
 )
