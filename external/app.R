@@ -5,10 +5,20 @@ projects.sheet <-
   gs_key("1I6Z94prfJrmSSmD_mwqazkp8Qx8AUmmsp9hAW6bF8yQ",
          visibility = "public")
 projects.df <- gs_read(projects.sheet, ws = "Approved-Data")
-projects.df$Project.Start.Date <-
-  as.POSIXct(projects.df$Project.Start.Date)
-projects.df$Project.End.Date <-
-  as.POSIXct(projects.df$Project.End.Date)
+# projects.df$Project.Start.Date <-
+#   as.POSIXct(projects.df$Project.Start.Date)
+# projects.df$Project.End.Date <-
+#   as.POSIXct(projects.df$Project.End.Date)
+projects.df$Project.Start.Date <- {
+  ymd <- ymd(projects.df$Project.Start.Date)
+  mdy <- mdy(projects.df$Project.Start.Date)
+  ymd[is.na(ymd)] <- mdy[is.na(ymd)]
+  force_tz(ymd, tzone = "GMT")}
+projects.df$Project.End.Date <- {
+  ymd <- ymd(projects.df$Project.End.Date)
+  mdy <- mdy(projects.df$Project.End.Date)
+  ymd[is.na(ymd)] <- mdy[is.na(ymd)]
+  force_tz(ymd, tzone = "GMT")}
 projects.df$Project.Short.Name <-
   as.character(projects.df$Project.Short.Name)
 projects.df$IT.Board <- as.factor(projects.df$IT.Board)
@@ -34,10 +44,22 @@ commsplanMultiDay.sheet <-
 commsplanMultiDay.df <<- gs_read(commsplanMultiDay.sheet)
 commsplanMultiDay.df$Action <<-
   as.factor(commsplanMultiDay.df$Action)
-commsplanMultiDay.df$Start.Date <<-
-  as.POSIXct(commsplanMultiDay.df$Start.Date)
-commsplanMultiDay.df$End.Date <<-
-  as.POSIXct(commsplanMultiDay.df$End.Date)
+# commsplanMultiDay.df$Start.Date <<-
+#   as.POSIXct(commsplanMultiDay.df$Start.Date)
+# commsplanMultiDay.df$End.Date <<-
+#   as.POSIXct(commsplanMultiDay.df$End.Date)
+
+commsplanMultiDay.df$Start.Date <<- {
+  ymd <- ymd(commsplanMultiDay.df$Start.Date)
+  mdy <- mdy(commsplanMultiDay.df$Start.Date)
+  ymd[is.na(ymd)] <- mdy[is.na(ymd)]
+  force_tz(ymd, tzone = "GMT")}
+commsplanMultiDay.df$End.Date <<- {
+  ymd <- ymd(commsplanMultiDay.df$End.Date)
+  mdy <- mdy(commsplanMultiDay.df$End.Date)
+  ymd[is.na(ymd)] <- mdy[is.na(ymd)]
+  force_tz(ymd, tzone = "GMT")}
+
 commsplanMultiDay.df$Comms.Type <<-
   as.factor(commsplanMultiDay.df$Comms.Type)
 commsplanMultiDay.df$Source <<-
