@@ -13,6 +13,16 @@ tabPanel("About",
                         For more information about RDM at Oxford please see the research data website: ","<a href=http://researchdata.ox.ac.uk/home/introduction-to-rdm/>researchdata.ox.ac.uk/home/introduction-to-rdm/</a></p>",
                         "<strong>Update: 9/9/2015</strong> - this is our first draft, we really want to improve the design, and to show how we can use RDM to help coordinate our efforts, and report progress to the RDM working group.",sep=""))
          )),
+         tabPanel("Research Data Lifecycle",
+                  HTML(paste(
+                    "<p></p>",
+                    "<p>The succesful curation and preservation of research data is a multi-faceted concern for researchers and funders alike.
+                    Visualising the lifecycle of research data can be difficult, correctly identifying roles and responsibilities requires a 
+                    full model of how research data is generated, stored, accessed and updated.</p>",
+                    "To help with RDM at Oxford, we have embedded the DCC Curation Lifecycle Model diagram below</p>",
+                    "<p><img src=http://www.dcc.ac.uk/sites/default/files/lifecycle_web.png text-align='center'></p>",
+                    "Attribution: <a href=http://www.dcc.ac.uk/resources/curation-lifecycle-model>http://www.dcc.ac.uk/resources/curation-lifecycle-model</a>"
+                    ,sep = ""))),
          tabPanel("Adding data to these plans",
                   HTML(paste(
                     "<p></p>",
