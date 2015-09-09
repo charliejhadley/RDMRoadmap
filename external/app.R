@@ -88,7 +88,7 @@ commsplanMultiDay.df$taskID <<-
 
 earliest.proj.start <-
   reactive(year(min(projects.df$Project.Start.Date)))
-latest.proj.start <-
+latest.end.start <-
   reactive(year(max(projects.df$Project.End.Date)))
 allITBoards <- reactive(levels(projects.df$IT.Board))
 
@@ -96,9 +96,9 @@ output$projTimeSliderUI <- renderUI({
   sliderInput(
     "projTimelineRange", "Time period of interest:",
     min = earliest.proj.start(),
-    max = latest.proj.start(),
+    max = latest.end.start(),
     step = 1,
-    value = c(earliest.proj.start(),latest.proj.start())
+    value = c(earliest.proj.start(),latest.end.start())
   )
 })
 
@@ -195,7 +195,7 @@ output$projectsDataTable <- renderDataTable(
 
 earliest.comms.start <-
   reactive(year(min(commsplanMultiDay.df$Start.Date)))
-latest.comms.start <-
+latest.comms.end <-
   reactive(year(max(commsplanMultiDay.df$End.Date)))
 allCommsTypes <- reactive(levels(commsplanMultiDay.df$Comms.Type))
 allCommsSources <- reactive(levels(commsplanMultiDay.df$Source))
@@ -204,9 +204,9 @@ output$commsTimeSliderUI <- renderUI({
   sliderInput(
     "commsTimelineRange", "Time period of interest:",
     min = earliest.comms.start(),
-    max = latest.comms.start(),
+    max = latest.comms.end(),
     step = 1,
-    value = c(earliest.comms.start(),latest.comms.start())
+    value = c(earliest.comms.start(),latest.comms.end())
   )
 })
 
@@ -307,6 +307,16 @@ output$commsPlanMultiDaySummary <- renderUI({
 })
 # ===================== Budget Treemap Outputs ===============================
 
+output$resourceTreemapTimeSliderUI <- renderUI({
+  sliderInput(
+    "resourceTreemapTimelineRange", "Time period of interest:",
+    min = earliest.proj.start(),
+    max = latest.end.start(),
+    step = 1,
+    value = c(earliest.proj.start(),latest.end.start())
+  )
+})
+
 output$resourceTreemapUI <- renderUI({
   plotOutput("resourceTreemap", height = 500,
              click = "resourceTreemap_click")
@@ -315,8 +325,15 @@ output$resourceTreemapUI <- renderUI({
 e <- environment()
 
 output$resourceTreemap <- renderPlot({
+  
+  proj.df <-
+    projects.df[projects.df$Project.Start.Date >= paste(input$resourceTreemapTimelineRange[1],"01","01",sep =
+                                                  "-") &
+                  projects.df$Project.End.Date <= paste(input$resourceTreemapTimelineRange[2],"12","31",sep =
+                                                  "-"),]
+  
   tm <- treemap(
-    projects.df,
+    proj.df,
     index = "Project.Short.Name",
     vSize = "Budget.Requested",
     vColor = "Budget.Requested",
