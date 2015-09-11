@@ -34,8 +34,12 @@ tabPanel("About",
            tabPanel("Adding data to these plans",
                     HTML(
                       paste(
-                        "<p></p>",
-                        "<p>Projects can be created, updated and deleted using the following Google Form: ","<a href=http://goo.gl/forms/Q4LKIJ7DZP>http://goo.gl/forms/Q4LKIJ7DZP</a></p>"
+                        "<p><h1>RDM Projects</h1></p>",
+                        "<p>To request that an RDM Project be added to this tool, fill in this Google Form: ","<a href=http://goo.gl/forms/Q4LKIJ7DZP>http://goo.gl/forms/Q4LKIJ7DZP</a>. 
+                        Note that new projects will not appear within this tool until it has been approved.</p>",
+                        "<p><h1>Communication Plans</h1></p>",
+                        "<p>To request that an RDM Project be added to this tool, fill in this Google Form: ","<a href=http://goo.gl/forms/Q4LKIJ7DZP>FORM NOT READY</a>. 
+                        Note that new projects will not appear within this tool until it has been approved.</p>"
                         ,sep = ""
                       )
                     )),

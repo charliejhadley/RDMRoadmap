@@ -13,12 +13,14 @@ projects.df$Project.Start.Date <- {
   ymd <- ymd(projects.df$Project.Start.Date)
   mdy <- mdy(projects.df$Project.Start.Date)
   ymd[is.na(ymd)] <- mdy[is.na(ymd)]
-  force_tz(ymd, tzone = "GMT")}
+  force_tz(ymd, tzone = "GMT")
+}
 projects.df$Project.End.Date <- {
   ymd <- ymd(projects.df$Project.End.Date)
   mdy <- mdy(projects.df$Project.End.Date)
   ymd[is.na(ymd)] <- mdy[is.na(ymd)]
-  force_tz(ymd, tzone = "GMT")}
+  force_tz(ymd, tzone = "GMT")
+}
 projects.df$Project.Short.Name <-
   as.character(projects.df$Project.Short.Name)
 projects.df$IT.Board <- as.factor(projects.df$IT.Board)
@@ -37,6 +39,21 @@ projects.df <-
   )),]
 projects.df$projectID <- as.factor(nrow(projects.df):1)
 
+## ================== Project Summary Text  ============================
+
+output$projSummaryText <- renderUI(HTML(
+  paste(
+    "There are currently ",as.character(length(projects.df$Project.Short.Name)), " RDM projects included in this tool, details on some of these projects
+    can be accessed by selecting the project from the navigation on the left-hand side of this page. There are also a number of visualisations of these projects
+    available from underneath \"RDM Projects\" in the navigation at the top of the page.</p>
+    The current list of projects is as follows:</p>",
+    paste(
+      "<ul>",lapply(projects.df$Project.Short.Name, function(x)
+        paste("<li>",x,"</li>",sep = "")),"</ul>", collapse = ""
+    ),sep = ""
+  )
+))
+
 ## ==================  Comms Plan (Multi-day, non-repeating) ============================
 commsplanMultiDay.sheet <-
   gs_key("1ZWxJhJM9p6UaoQnBOHUsuyfht40OaEw4qKybVdFtjTc",
@@ -53,12 +70,14 @@ commsplanMultiDay.df$Start.Date <<- {
   ymd <- ymd(commsplanMultiDay.df$Start.Date)
   mdy <- mdy(commsplanMultiDay.df$Start.Date)
   ymd[is.na(ymd)] <- mdy[is.na(ymd)]
-  force_tz(ymd, tzone = "GMT")}
+  force_tz(ymd, tzone = "GMT")
+}
 commsplanMultiDay.df$End.Date <<- {
   ymd <- ymd(commsplanMultiDay.df$End.Date)
   mdy <- mdy(commsplanMultiDay.df$End.Date)
   ymd[is.na(ymd)] <- mdy[is.na(ymd)]
-  force_tz(ymd, tzone = "GMT")}
+  force_tz(ymd, tzone = "GMT")
+}
 
 commsplanMultiDay.df$Comms.Type <<-
   as.factor(commsplanMultiDay.df$Comms.Type)
@@ -170,26 +189,40 @@ output$projTimelineSummary <- renderUI({
   
   wellPanel(
     titlePanel(projData$Project.Short.Name),
-    HTML(paste("<b>Project Manager:</b> ",projData$Project.Manager,"<p>")),
-    HTML(paste("<b>Project Sponsor:</b> ",projData$Project.Sponsor,"<p>")),
-    HTML(paste("<b>Budget Requested:</b> ",
-               paste("£",format(projData$Budget.Requested, big.mark = ","),sep = ""),"<p>")),
+    HTML(
+      paste("<b>Project Manager:</b> ",projData$Project.Manager,"<p>")
+    ),
+    HTML(
+      paste("<b>Project Sponsor:</b> ",projData$Project.Sponsor,"<p>")
+    ),
+    HTML(paste(
+      "<b>Budget Requested:</b> ",
+      paste("£",format(projData$Budget.Requested, big.mark = ","),sep = ""),"<p>"
+    )),
     # HTML(paste("<a href='",projData$Dummy.Link,"'>",projData$Dummy.Link,"</a><p>")),
-  HTML(newlineFn(projData$Project.Summary))
-)
+    HTML(newlineFn(projData$Project.Summary))
+  )
 })
 
 ## Show projects.df as a DataTable
 
-output$projectsDataTableColUI <- renderUI(selectInput('proj_Cols', 'Columns to show:',
-                                                          names(projects.df)[1:(ncol(projects.df)-1)], selected = c("Project.Short.Name","Project.Start.Date",
-                                                                                                                    "Project.End.Date","Project.Summary"), 
-                                                          multiple = TRUE))
+output$projectsDataTableColUI <-
+  renderUI(selectInput(
+    'proj_Cols', 'Columns to show:',
+    names(projects.df)[1:(ncol(projects.df) -
+                            1)], selected = c(
+                              "Project.Short.Name","Project.Start.Date",
+                              "Project.End.Date","Project.Summary"
+                            ),
+    multiple = TRUE
+  ))
 
-output$projectsDataTable <- renderDataTable(
-  projects.df[, input$proj_Cols, drop = FALSE],
-  option = list( drawCallback = I("function( settings ) {document.getElementById('ex1').style.width = '100%';}")) 
-)
+output$projectsDataTable <- renderDataTable(projects.df[, input$proj_Cols, drop = FALSE],
+                                            option = list(
+                                              drawCallback = I(
+                                                "function( settings ) {document.getElementById('ex1').style.width = '100%';}"
+                                              )
+                                            ))
 
 # ===================== Comms Plan Timelines ================================
 
@@ -238,14 +271,15 @@ output$commsPlanMultiDay <- renderPlot({
   
   comms.df <-
     comms.df[comms.df$Start.Date >= paste(input$commsTimelineRange[1],"01","01",sep =
-                                                          "-") &
+                                            "-") &
                comms.df$End.Date <= paste(input$commsTimelineRange[2],"12","31",sep =
-                                                          "-"),]
+                                            "-"),]
   
   if (nrow(comms.df) == 0)
     return()
   
-  base <- ggplot(comms.df, aes(x = Start.Date, y = taskID, color = Comms.Type))
+  base <-
+    ggplot(comms.df, aes(x = Start.Date, y = taskID, color = Comms.Type))
   gantt <- {
     base +
       scale_y_discrete(breaks = NULL) +
@@ -272,38 +306,41 @@ output$commsPlanMultiDaySummary <- renderUI({
     subset(comms.df, subset = Source == input$commsPlanMultiDay_click$panelvar1)
   
   slction <-
-    subset(
-      slction, Comms.Type %in% input$selCommsType &
-        Source %in% input$selCommsSource
-    )
+    subset(slction, Comms.Type %in% input$selCommsType &
+             Source %in% input$selCommsSource)
   
   slction <-
     slction[slction$Start.Date >= paste(input$commsTimelineRange[1],"01","01",sep =
-                                            "-") &
+                                          "-") &
               slction$End.Date <= paste(input$commsTimelineRange[2],"12","31",sep =
-                                            "-"),]
+                                          "-"),]
   
   slction <- slction[rev(order(slction$Start.Date,slction$Action)),]
   slction <- slction[round(input$commsPlanMultiDay_click$y),]
   
-  wellPanel(titlePanel(slction$Action),
-            HTML(paste(
-              "<b>Delivery Window:</b>",as.character(slction$Start.Date), " - ",as.character(slction$End.Date),"<p>"
-            )),
-            HTML(paste(
-              "<b>Comms Type:</b>",as.character(slction$Comms.Type),"<p>"
-            )),
-            HTML(paste(
-              "<b>Source:</b>",as.character(slction$Source),"<p>"
-            )),
-            
-            
-            
-            HTML(paste(
-              "<b>Contacts:</b>",gsub(pattern = "\n", replacement = ", ", x = as.character(slction$Contacts)),"<p>"
-            )),
-            HTML(newlineFn(slction$Description))
-            )
+  wellPanel(
+    titlePanel(slction$Action),
+    HTML(
+      paste(
+        "<b>Delivery Window:</b>",as.character(slction$Start.Date), " - ",as.character(slction$End.Date),"<p>"
+      )
+    ),
+    HTML(paste(
+      "<b>Comms Type:</b>",as.character(slction$Comms.Type),"<p>"
+    )),
+    HTML(paste(
+      "<b>Source:</b>",as.character(slction$Source),"<p>"
+    )),
+    
+    
+    
+    HTML(paste(
+      "<b>Contacts:</b>",gsub(
+        pattern = "\n", replacement = ", ", x = as.character(slction$Contacts)
+      ),"<p>"
+    )),
+    HTML(newlineFn(slction$Description))
+  )
 })
 # ===================== Budget Treemap Outputs ===============================
 
@@ -325,12 +362,11 @@ output$resourceTreemapUI <- renderUI({
 e <- environment()
 
 output$resourceTreemap <- renderPlot({
-  
   proj.df <-
     projects.df[projects.df$Project.Start.Date >= paste(input$resourceTreemapTimelineRange[1],"01","01",sep =
-                                                  "-") &
+                                                          "-") &
                   projects.df$Project.End.Date <= paste(input$resourceTreemapTimelineRange[2],"12","31",sep =
-                                                  "-"),]
+                                                          "-"),]
   
   tm <- treemap(
     proj.df,
@@ -370,27 +406,35 @@ getTreemapClickID <- reactive({
   }
 })
 
-treeCheck <- function(x) try(x)
+treeCheck <- function(x)
+  try(x)
 
 output$resourceTreemapSummary <-
   renderUI({
-    
     # print(getTreemapClickID()$Project.Short.Name)
     
-    if (class(try(getTreemapClickID()))=="try-error")
+    if (class(try(getTreemapClickID())
+    )  ==  "try-error")
       return(NULL)
-    if(try(is.null(getTreemapClickID()$Project.Short.Name), silent = TRUE))
+    if (try(is.null(getTreemapClickID()$Project.Short.Name), silent = TRUE)
+    )
       return(NULL)
     
     projData <-
       projects.df[projects.df$Project.Short.Name == getTreemapClickID()$Project.Short.Name,]
-
+    
     wellPanel(
       titlePanel(projData$Project.Short.Name),
-      HTML(paste("<b>Project Manager:</b> ",projData$Project.Manager,"<p>")),
-      HTML(paste("<b>Project Sponsor:</b> ",projData$Project.Sponsor,"<p>")),
-      HTML(paste("<b>Budget Requested:</b> ",
-                 paste("£",format(projData$Budget.Requested, big.mark = ","),sep = ""),"<p>")),
+      HTML(
+        paste("<b>Project Manager:</b> ",projData$Project.Manager,"<p>")
+      ),
+      HTML(
+        paste("<b>Project Sponsor:</b> ",projData$Project.Sponsor,"<p>")
+      ),
+      HTML(paste(
+        "<b>Budget Requested:</b> ",
+        paste("£",format(projData$Budget.Requested, big.mark = ","),sep = ""),"<p>"
+      )),
       # HTML(paste("<a href='",projData$Dummy.Link,"'>",projData$Dummy.Link,"</a><p>")),
       HTML(newlineFn(projData$Project.Summary))
     )
