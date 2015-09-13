@@ -8,7 +8,9 @@ library(dplyr)
 library(lubridate)
 library(googlesheets)
 library(scales)
-
+require(quantmod)
+require(reshape2)
+require(plyr)
 ## ======================= Utility Functions =====================
 
 # regex for handling new lines in text
