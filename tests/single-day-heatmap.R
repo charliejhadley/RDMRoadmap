@@ -23,7 +23,6 @@ eventFreq.df$date <- as.POSIXct(eventFreq.df$date)
 str(eventFreq.df)
 
 ### Function to calculate week of month:
-
 weekOfMonth <- function(x){
   weekN <- function(x) as.numeric(format(x, "%U"))
   weekN(x) - weekN(as.Date(cut(x, "month"))) + 1
@@ -59,9 +58,7 @@ eventFreq.df$week <- as.numeric(format(eventFreq.df$date,"%W"))+1
 eventFreq.df$week
 # and now for each monthblock we normalize the week to start at 1 
 eventFreq.df<-ddply(eventFreq.df,.(yearmonthf),transform,monthweek=1+week-min(week))
-str(eventFreq.df)
-
-eventFreq.df$monthweek <- weekFn(eventFreq.df$date)
+eventFreq.df$monthweek <- weekOfMonth(eventFreq.df$date)
 
 
 ## Visualise:
@@ -69,3 +66,63 @@ eventFreq.df$monthweek <- weekFn(eventFreq.df$date)
 ggplot(eventFreq.df, aes(monthweek, weekdayf, fill = Freq)) + 
   geom_tile(colour = "white") + facet_grid(year~monthf) + scale_fill_gradient(low="red", high="yellow") +
   xlab("Week of Month") + ylab("") + scale_x_continuous(limits = c(1,5))
+
+
+shinyApp(
+  ui = fluidPage(
+    uiOutput("heatmapUI"),
+    uiOutput("heatmapSummary")
+  ),
+  server = function(input, output, session){
+    output$heatmapUI <- renderUI({
+      plotOutput("heatmapPlot", height = 500,
+                 click = "heatmapPlot_click")
+    })
+    
+    output$heatmapPlot <- renderPlot({
+      events <- eventFreq.df
+      
+      if (nrow(events) == 0)
+        return()
+      
+      ggplot(events, aes(monthweek, weekdayf, fill = Freq)) + 
+        geom_tile(colour = "white") + facet_grid(year~monthf) + scale_fill_gradient(low="red", high="yellow") +
+        xlab("Week of Month") + ylab("") + scale_x_continuous(limits = c(0,5))
+      
+    })
+    
+    output$heatmapSummary <- renderUI({
+      if (is.null(input$heatmapPlot_click))
+        return()
+      
+      events <- eventFreq.df
+      
+      ## This selects from the eventFreq table so as to construct the date - could do this more efficiently be constructing date algorithmically
+      ## TODO: Replace this with an algorithmic method
+      selected <- subset(events, monthf %in% input$heatmapPlot_click$panelvar1 & year %in% input$heatmapPlot_click$panelvar2 &
+                           weekday %in% (6 - round(input$heatmapPlot_click$y)) & # 6 - to account for reversed weekdays
+                           monthweek %in% round(input$heatmapPlot_click$x)
+      )
+      
+      print(selected)
+      
+      eventsOnDay <- singleDayEvents.df[singleDayEvents.df$Date == selected$date,]
+      
+      if(nrow(eventsOnDay)==0)
+        return()
+      
+      ## TODO: Make a useful summary
+      wellPanel(
+        HTML(paste(
+          "<p>Events on selected day</p>",
+          paste(eventsOnDay$Event.Title,sep="</p>")
+          ,sep=""
+        ))
+      )
+      
+    }
+    )
+  })
+
+
+

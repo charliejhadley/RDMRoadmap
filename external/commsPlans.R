@@ -24,6 +24,15 @@ navbarMenu("Comms & Events",
          )),
          tabPanel(
            "RDM Events",
-           "I've not been implemented yet"
+           fluidPage(
+             wellPanel(
+               HTML(paste(
+                 "<h1>BETA</h1></p>",
+                 "This calendar heatmap will display RDM events pulled from a variety of sources, the data displayed is not currently accurate"
+               ,sep=""))
+             ),
+             uiOutput("heatmapUI"),
+             uiOutput("heatmapSummary")
+           )
          )
 )

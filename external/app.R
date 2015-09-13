@@ -1,10 +1,10 @@
 # App body for RDM Roadmap Dashboard
 
 ## ================ Projects Sheet Loading and Manipulation ==================
-projects.sheet <-
+projects.workbook <-
   gs_key("1I6Z94prfJrmSSmD_mwqazkp8Qx8AUmmsp9hAW6bF8yQ",
          visibility = "public")
-projects.df <- gs_read(projects.sheet, ws = "Approved-Data")
+projects.df <- gs_read(projects.workbook, ws = "Approved-Data")
 # projects.df$Project.Start.Date <-
 #   as.POSIXct(projects.df$Project.Start.Date)
 # projects.df$Project.End.Date <-
@@ -95,15 +95,78 @@ commsplanMultiDay.df <<-
 commsplanMultiDay.df$taskID <<-
   as.factor(nrow(commsplanMultiDay.df):1)
 
-## ======== Life cycle Diagram =============
+## ============================ Single Day Events Sheet ============================
 
-# getLifeCycle<-function() {
-#   return(includeHTML("external/lifecycleTest.html"))
-# }
-#
-# output$lifeCycle<-renderUI({getLifeCycle()})
+singleDayEvents.sheet <-
+  gs_key("13R1LyUVXSr82N7eifN0DDN-PAFvhv8Cyyi8Vm5sJs8U",
+         visibility = "public")
+singleDayEvents.df <- gs_read(singleDayEvents.sheet)
+str(singleDayEvents.df)
+singleDayEvents.df$Source <- factor(singleDayEvents.df$Source)
+singleDayEvents.df$Department <-
+  factor(singleDayEvents.df$Department)
+singleDayEvents.df$Audience <- factor(singleDayEvents.df$Audience)
+singleDayEvents.df$Date <- as.POSIXct(singleDayEvents.df$Date)
+# ifwantTime <- as.POSIXct(paste(singleDayEvents.df$eventFreq.dfe,singleDayEvents.df$Start.time,sep=" "))
+## Re-order eventFreq.dfa.frame according to this: http://stackoverflow.com/a/32333974/1659890
+singleDayEvents.df$Event.Title <-
+  as.character(singleDayEvents.df$Event.Title)
+singleDayEvents.df <-
+  singleDayEvents.df[order(singleDayEvents.df$Date, singleDayEvents.df$Event.Title),]
+singleDayEvents.df$eventID <- as.factor(nrow(singleDayEvents.df):1)
+## Make a frequency table
+eventFreq.df <- as.data.frame(table(singleDayEvents.df$Date))
+colnames(eventFreq.df) <- c("date","Freq")
+eventFreq.df$date <- as.POSIXct(eventFreq.df$date)
+### Function to calculate week of month:
+weekOfMonth <- function(x) {
+  weekN <- function(x)
+    as.numeric(format(x, "%U"))
+  weekN(x) - weekN(as.Date(cut(x, "month"))) + 1
+}
+eventFreq.df$year <-
+  as.numeric(as.POSIXlt(eventFreq.df$date)$year + 1900)
+# the month too
+eventFreq.df$month <- as.numeric(as.POSIXlt(eventFreq.df$date)$mon + 1)
+# but turn months into ordered facors to control the appearance/ordering in the presentation
+eventFreq.df$monthf <-
+  factor(
+    eventFreq.df$month,levels = as.character(1:12),labels = c(
+      "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
+    ),ordered = TRUE
+  )
+# the day of week is again easily found
+eventFreq.df$weekday = as.POSIXlt(eventFreq.df$date)$wday
+# again turn into factors to control appearance/abbreviation and ordering
+# I use the reverse function rev here to order the week top down in the graph
+# you can cut it out to reverse week order
+str(eventFreq.df)
+eventFreq.df$weekdayf <-
+  factor(
+    eventFreq.df$weekday,levels = rev(1:7),labels = rev(c(
+      "Mon","Tue","Wed","Thu","Fri","Sat","Sun"
+    )),ordered = TRUE
+  )
+# the monthweek part is a bit trickier
+# first a factor which cuts the eventFreq.dfa into month chunks
+eventFreq.df$yearmonth <- as.yearmon(eventFreq.df$date)
+eventFreq.df$yearmonthf <- factor(eventFreq.df$yearmonth)
+# then find the "week of year" for each day
+eventFreq.df$week <- as.numeric(format(eventFreq.df$date,"%W")) + 1
+eventFreq.df$week
+# and now for each monthblock we normalize the week to start at 1
+eventFreq.df <-
+  ddply(eventFreq.df,.(yearmonthf),transform,monthweek = 1 + week - min(week))
+eventFreq.df$monthweek <- weekOfMonth(eventFreq.df$date)
 
 # ===================== Project Timeline Outputs ===============================
+
+output$projDeleteUI <- renderUI(
+  selectInput(
+    'projDelete', 'Select Project to Delete', projects.df$Project.Short.Name, selectize =
+      TRUE
+  )
+)
 
 earliest.proj.start <-
   reactive(year(min(projects.df$Project.Start.Date)))
@@ -217,12 +280,13 @@ output$projectsDataTableColUI <-
     multiple = TRUE
   ))
 
-output$projectsDataTable <- renderDataTable(projects.df[, input$proj_Cols, drop = FALSE],
-                                            option = list(
-                                              drawCallback = I(
-                                                "function( settings ) {document.getElementById('ex1').style.width = '100%';}"
-                                              )
-                                            ))
+output$projectsDataTable <-
+  renderDataTable(projects.df[, input$proj_Cols, drop = FALSE],
+                  option = list(
+                    drawCallback = I(
+                      "function( settings ) {document.getElementById('ex1').style.width = '100%';}"
+                    )
+                  ))
 
 # ===================== Comms Plan Timelines ================================
 
@@ -406,18 +470,14 @@ getTreemapClickID <- reactive({
   }
 })
 
-treeCheck <- function(x)
-  try(x)
 
 output$resourceTreemapSummary <-
   renderUI({
     # print(getTreemapClickID()$Project.Short.Name)
     
-    if (class(try(getTreemapClickID())
-    )  ==  "try-error")
+    if (class(try(getTreemapClickID()))  ==  "try-error")
       return(NULL)
-    if (try(is.null(getTreemapClickID()$Project.Short.Name), silent = TRUE)
-    )
+    if (try(is.null(getTreemapClickID()$Project.Short.Name), silent = TRUE))
       return(NULL)
     
     projData <-
@@ -440,3 +500,55 @@ output$resourceTreemapSummary <-
     )
     
   })
+
+# ===================== Calendar Heatmap ===============================
+
+output$heatmapUI <- renderUI({
+  plotOutput("heatmapPlot", height = 500,
+             click = "heatmapPlot_click")
+})
+
+output$heatmapPlot <- renderPlot({
+  events <- eventFreq.df
+  
+  if (nrow(events) == 0)
+    return()
+  
+  ggplot(events, aes(monthweek, weekdayf, fill = Freq)) +
+    geom_tile(colour = "white") + facet_grid(year ~ monthf) + scale_fill_gradient(low =
+                                                                                    "red", high = "yellow") +
+    xlab("Week of Month") + ylab("") + scale_x_continuous(limits = c(0,5))
+  
+})
+
+output$heatmapSummary <- renderUI({
+  if (is.null(input$heatmapPlot_click))
+    return()
+  
+  events <- eventFreq.df
+  
+  ## This selects from the eventFreq table so as to construct the date - could do this more efficiently be constructing date algorithmically
+  ## TODO: Replace this with an algorithmic method
+  selected <-
+    subset(
+      events, monthf %in% input$heatmapPlot_click$panelvar1 &
+        year %in% input$heatmapPlot_click$panelvar2 &
+        weekday %in% (6 - round(input$heatmapPlot_click$y)) &
+        # 6 - to account for reversed weekdays
+        monthweek %in% round(input$heatmapPlot_click$x)
+    )
+  
+  eventsOnDay <-
+    singleDayEvents.df[singleDayEvents.df$Date == selected$date,]
+  
+  if (nrow(eventsOnDay) == 0)
+    return()
+  
+  ## TODO: Make a useful summary
+  wellPanel(HTML(paste(
+    "<p>Events on selected day</p>",
+    paste(eventsOnDay$Event.Title,sep = "</p>")
+    ,sep = ""
+  )))
+  
+})
