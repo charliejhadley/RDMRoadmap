@@ -1,33 +1,52 @@
 ## Import eventFreq.dfa:
 library(googlesheets)
-singleDayEvents.sheet <- gs_key("13R1LyUVXSr82N7eifN0DDN-PAFvhv8Cyyi8Vm5sJs8U",
+trainingEvents.sheet <- gs_key("13R1LyUVXSr82N7eifN0DDN-PAFvhv8Cyyi8Vm5sJs8U",
                          visibility = "public")
-singleDayEvents.df <- gs_read(singleDayEvents.sheet)
-str(singleDayEvents.df)
-singleDayEvents.df$Source <- factor(singleDayEvents.df$Source)
-singleDayEvents.df$Department <- factor(singleDayEvents.df$Department)
-singleDayEvents.df$Audience <- factor(singleDayEvents.df$Audience)
-singleDayEvents.df$Date <- as.POSIXct(singleDayEvents.df$Date)
-# ifwantTime <- as.POSIXct(paste(singleDayEvents.df$eventFreq.dfe,singleDayEvents.df$Start.time,sep=" "))
+trainingEvents.df <- gs_read(trainingEvents.sheet)
+str(trainingEvents.df)
+trainingEvents.df$Source <- factor(trainingEvents.df$Source)
+#trainingEvents.df$Department <- factor(trainingEvents.df$Department)
+#trainingEvents.df$Audience <- factor(trainingEvents.df$Audience)
+trainingEvents.df$Category <- factor(trainingEvents.df$Category)
+trainingEvents.df$Software <- factor(trainingEvents.df$Software)
+trainingEvents.df$Programming.Language <- factor(trainingEvents.df$Programming.Language)
+trainingEvents.df$Location <- factor(trainingEvents.df$Location)
+trainingEvents.df$Date <- as.POSIXct(trainingEvents.df$Date)
+# ifwantTime <- as.POSIXct(paste(trainingEvents.df$eventFreq.dfe,trainingEvents.df$Start.time,sep=" "))
 ## Re-order eventFreq.dfa.frame according to this: http://stackoverflow.com/a/32333974/1659890
-singleDayEvents.df$Event.Title <- as.character(singleDayEvents.df$Event.Title)  
-singleDayEvents.df <- singleDayEvents.df[order(singleDayEvents.df$Date, singleDayEvents.df$Event.Title), ]
-singleDayEvents.df$eventID <- as.factor(nrow(singleDayEvents.df):1)
-str(singleDayEvents.df)
+trainingEvents.df$Event.Title <- as.character(trainingEvents.df$Event.Title)  
+trainingEvents.df <- trainingEvents.df[order(trainingEvents.df$Date, trainingEvents.df$Event.Title), ]
+trainingEvents.df$eventID <- as.factor(nrow(trainingEvents.df):1)
+str(trainingEvents.df)
 
 ## Count total events on each day:
 library(dplyr)
-eventFreq.df <- as.data.frame(table(singleDayEvents.df$Date))
+eventFreq.df <- as.data.frame(table(trainingEvents.df$Date))
 colnames(eventFreq.df) <- c("date","Freq")
 eventFreq.df$date <- as.POSIXct(eventFreq.df$date)
-str(eventFreq.df)
+
+# ## =========== Add empty days:
+# ## Compute date range
+# dateRange <- {
+# minDate <- min(as.Date(trainingEvents.df$Date))
+# maxDate <- max(as.Date(trainingEvents.df$Date))
+# seq(minDate,maxDate,by="day")
+# }
+# foo1 <- strptime(dateRange,format="%Y-%m-%d")
+# # Show that the objects are identical to one another
+# trainingEvents.df$Date[1]==foo1[2]
+# # compute setdiff
+# correctEmpyDates <- strptime(as.POSIXct(setdiff(unique(trainingEvents.df$Date),strptime(dateRange,format="%Y-%m-%d")),origin = "1960-01-01"),
+#          format="%Y-%m-%d")
+# # Add empty dates into eventFreq.df
+# eventFreq.df <- rbind(eventFreq.df,data.frame(date = emptyDays, Freq = rep(NA,length(emptyDays))))
+
 
 ### Function to calculate week of month:
 weekOfMonth <- function(x){
   weekN <- function(x) as.numeric(format(x, "%U"))
   weekN(x) - weekN(as.Date(cut(x, "month"))) + 1
 } 
-
 # Factor the eventFreq.df
 require(quantmod)
 require(ggplot2)
@@ -47,7 +66,6 @@ eventFreq.df$weekday = as.POSIXlt(eventFreq.df$date)$wday
 # again turn into factors to control appearance/abbreviation and ordering
 # I use the reverse function rev here to order the week top down in the graph
 # you can cut it out to reverse week order
-str(eventFreq.df)
 eventFreq.df$weekdayf<-factor(eventFreq.df$weekday,levels=rev(1:7),labels=rev(c("Mon","Tue","Wed","Thu","Fri","Sat","Sun")),ordered=TRUE)
 # the monthweek part is a bit trickier 
 # first a factor which cuts the eventFreq.dfa into month chunks
@@ -55,7 +73,6 @@ eventFreq.df$yearmonth<-as.yearmon(eventFreq.df$date)
 eventFreq.df$yearmonthf<-factor(eventFreq.df$yearmonth)
 # then find the "week of year" for each day
 eventFreq.df$week <- as.numeric(format(eventFreq.df$date,"%W"))+1
-eventFreq.df$week
 # and now for each monthblock we normalize the week to start at 1 
 eventFreq.df<-ddply(eventFreq.df,.(yearmonthf),transform,monthweek=1+week-min(week))
 eventFreq.df$monthweek <- weekOfMonth(eventFreq.df$date)
@@ -63,10 +80,28 @@ eventFreq.df$monthweek <- weekOfMonth(eventFreq.df$date)
 
 ## Visualise:
 
-ggplot(eventFreq.df, aes(monthweek, weekdayf, fill = Freq)) + 
-  geom_tile(colour = "white") + facet_grid(year~monthf) + scale_fill_gradient(low="red", high="yellow") +
-  xlab("Week of Month") + ylab("") + scale_x_continuous(limits = c(1,5))
+trainingHeatMap <- ggplot(eventFreq.df, aes(monthweek, weekdayf, fill = Freq)) + 
+  geom_tile(colour = "white") + 
+  facet_grid(year~monthf) + 
+  scale_fill_gradient(low="yellow", high="red", na.value="white") +
+  xlab("Week of Month") + ylab("")
 
+trainingHeatMap + geom_vline(xintercept=seq(0.5, 5.5, 1)) + geom_hline(yintercept = seq(0.5, 5.5, 1), color = "black") +
+  theme(panel.grid.major.y = element_blank(), panel.grid.major.x = element_blank())
+
+trainingHeatMap <- trainingHeatMap + scale_x_continuous(breaks=seq(0.5, 5.5, 1), limits = c(0.5,5.5), minor_breaks = NULL, 
+                                                labels = 1:5)
+
+
+baseHeatMap + geom_hline(yintercept = seq(0.5, 5.5, 1), color = "black") + 
+  scale_y_discrete(labels = c("Friday","Thursday","Wednesday","Tuesday","Monday")) +
+  theme(panel.grid.major.y = element_blank())
+  
+
+
+
+
+seq(0, 5, 0.5)
 
 shinyApp(
   ui = fluidPage(
@@ -106,7 +141,7 @@ shinyApp(
       
       print(selected)
       
-      eventsOnDay <- singleDayEvents.df[singleDayEvents.df$Date == selected$date,]
+      eventsOnDay <- trainingEvents.df[trainingEvents.df$Date == selected$date,]
       
       if(nrow(eventsOnDay)==0)
         return()

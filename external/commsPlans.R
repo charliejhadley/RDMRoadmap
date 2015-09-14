@@ -31,8 +31,8 @@ navbarMenu("Comms & Events",
                  "This calendar heatmap will display RDM events pulled from a variety of sources, the data displayed is not currently accurate"
                ,sep=""))
              ),
-             uiOutput("heatmapUI"),
-             uiOutput("heatmapSummary")
+             uiOutput("trainingHeatmapUI"),
+             uiOutput("trainingHeatmapSummary")
            )
          )
 )
