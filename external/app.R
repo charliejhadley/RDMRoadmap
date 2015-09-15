@@ -100,7 +100,6 @@ commsplanMultiDay.df$taskID <<-
 trainingEvents.sheet <- gs_key("13R1LyUVXSr82N7eifN0DDN-PAFvhv8Cyyi8Vm5sJs8U",
                                visibility = "public")
 trainingEvents.df <- gs_read(trainingEvents.sheet)
-str(trainingEvents.df)
 trainingEvents.df$Source <- factor(trainingEvents.df$Source)
 #trainingEvents.df$Department <- factor(trainingEvents.df$Department)
 #trainingEvents.df$Audience <- factor(trainingEvents.df$Audience)
@@ -182,7 +181,7 @@ output$projITBoardUI <- renderUI({
 })
 
 output$projtimelineUI <- renderUI({
-  plotOutput("projtimeline", height = 300,
+  plotOutput("projtimeline", height = 400,
              click = "projtimeline_click")
 })
 
@@ -196,6 +195,19 @@ output$projtimeline <- renderPlot({
               proj.df$Project.End.Date <= paste(input$projTimelineRange[2],"12","31",sep =
                                                   "-"),]
   
+  
+  milestone.df <- data.frame(milestone = c(as.POSIXct("2010-10-01"),as.POSIXct("2012-07-01"),
+                                           as.POSIXct("2014-08-01"),as.POSIXct("2014-12-01"),as.POSIXct(today())),
+                             descrip =c("RDM Website Launched","RDM Policy Ratified","ORA-Data Launched","ORDS Launched","Today"))
+  
+  milestone2.df <-
+    milestone.df[milestone.df$milestone > paste(input$projTimelineRange[1],"01","01",sep =
+                                                  "-") &
+                   milestone.df$milestone < paste(input$projTimelineRange[2],"01","01",sep =
+                                                    "-"),]
+  
+  print(milestone2.df)
+  
   if (nrow(proj.df) == 0)
     return(NULL)
   
@@ -203,6 +215,23 @@ output$projtimeline <- renderPlot({
   proj.df <-
     proj.df[rev(order(proj.df$Budget.Requested, proj.df$Project.Short.Name)),]
   
+#   base <-
+#     ggplot(proj.df, aes(
+#       x = Project.Start.Date, y = projectID, color = as.factor(IT.Board)
+#     ))
+#   gantt <- {
+#     base +
+#       scale_y_discrete(breaks = proj.df$projectID, labels = proj.df$Project.Short.Name) +
+#       geom_segment(aes(xend = Project.End.Date, y = projectID, yend = projectID), size = 5)
+#   }
+#   gantt <-
+#     gantt + ylab(NULL) + xlab(NULL) + labs(color = "IT Board") + guides(color = guide_legend(title.hjust = 0.5))
+#   gantt <-
+#     gantt + scale_x_datetime(
+#       breaks = "3 month", labels = date_format("%Y-%b"), minor_breaks = "3 month"
+#     )
+#   gantt + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + geom_vline(xintercept = as.integer(as.POSIXct(today())), linetype = "dashed")
+#   
   base <-
     ggplot(proj.df, aes(
       x = Project.Start.Date, y = projectID, color = as.factor(IT.Board)
@@ -212,14 +241,18 @@ output$projtimeline <- renderPlot({
       scale_y_discrete(breaks = proj.df$projectID, labels = proj.df$Project.Short.Name) +
       geom_segment(aes(xend = Project.End.Date, y = projectID, yend = projectID), size = 5)
   }
+  
   gantt <-
     gantt + ylab(NULL) + xlab(NULL) + labs(color = "IT Board") + guides(color = guide_legend(title.hjust = 0.5))
   gantt <-
-    gantt + scale_x_datetime(
-      breaks = "3 month", labels = date_format("%Y-%b"), minor_breaks = "3 month"
-    )
-  gantt + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + geom_vline(xintercept = as.integer(as.POSIXct(today())), linetype = "dashed")
+    gantt + scale_x_datetime(breaks = "3 month", labels = date_format("%Y-%b"), minor_breaks = "3 month") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
   
+  gantt + geom_vline(data = milestone2.df, aes(xintercept = as.integer(milestone)), linetype = "dashed") +
+    geom_text(data = milestone2.df, aes(x = milestone,
+#                                       y = (length(milestone) - nchar(as.vector(descrip))/5), # need access to proj.df
+                                        y = 15,
+                                       label=descrip),
+              angle = 90, colour = "black", text = element_text(size = 14)) 
 })
 
 

@@ -8,9 +8,10 @@ library(dplyr)
 library(lubridate)
 library(googlesheets)
 library(scales)
-require(quantmod)
-require(reshape2)
-require(plyr)
+library(quantmod)
+library(reshape2)
+library(plyr)
+library(proto) # for geom_text2
 ## ======================= Utility Functions =====================
 
 # regex for handling new lines in text
