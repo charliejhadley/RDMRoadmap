@@ -180,6 +180,10 @@ output$projITBoardUI <- renderUI({
   )
 })
 
+output$hideMilestonesUI <-renderUI({
+  checkboxInput("hideMilestones","Hide milestone labels", value = FALSE)
+})
+
 output$projtimelineUI <- renderUI({
   plotOutput("projtimeline", height = 400,
              click = "projtimeline_click")
@@ -198,15 +202,16 @@ output$projtimeline <- renderPlot({
   
   milestone.df <- data.frame(milestone = c(as.POSIXct("2010-10-01"),as.POSIXct("2012-07-01"),
                                            as.POSIXct("2014-08-01"),as.POSIXct("2014-12-01"),as.POSIXct(today())),
-                             descrip =c("RDM Website Launched","RDM Policy Ratified","ORA-Data Launched","ORDS Launched","Today"))
+                             descrip =c("RDM Website Launched","RDM Policy Ratified","ORA-Data Launched","ORDS Launched","Today"), 
+                             colour = c(rep("red",4),"black"),
+                             ganttItems = rep(nrow(proj.df),5) # necessary to insert data into geom_text(aes)
+  )
   
-  milestone2.df <-
+  milestone.df <-
     milestone.df[milestone.df$milestone > paste(input$projTimelineRange[1],"01","01",sep =
                                                   "-") &
                    milestone.df$milestone < paste(input$projTimelineRange[2],"01","01",sep =
                                                     "-"),]
-  
-  print(milestone2.df)
   
   if (nrow(proj.df) == 0)
     return(NULL)
@@ -249,12 +254,13 @@ output$projtimeline <- renderPlot({
   gantt <-
     gantt + scale_x_datetime(breaks = "3 month", labels = date_format("%Y-%b"), minor_breaks = "3 month") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
   
-  gantt + geom_vline(data = milestone2.df, aes(xintercept = as.integer(milestone)), linetype = "dashed") +
-    geom_text(data = milestone2.df, aes(x = milestone,
-                                       y = (20 - nchar(as.vector(descrip))/5), # need access to proj.df
+  gantt + geom_vline(data = milestone.df, aes(xintercept = as.integer(milestone), color = colour), linetype = "dashed") +
+    if(!input$hideMilestones)
+      geom_text(data = milestone.df, aes(x = milestone,
+                                       y = (2 + nchar(as.vector(descrip))/5), 
 #                                        y = 15,
-                                       label=descrip),
-              angle = 90, colour = "black", text = element_text(size = 14)) 
+                                       label = descrip),
+              angle = 90, color = "black", text = element_text(size = 14))
 })
 
 
