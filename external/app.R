@@ -215,6 +215,8 @@ output$projtimeline <- renderPlot({
   proj.df <-
     proj.df[rev(order(proj.df$Budget.Requested, proj.df$Project.Short.Name)),]
   
+  nGanttItems <- nrow(proj.df)
+  
 #   base <-
 #     ggplot(proj.df, aes(
 #       x = Project.Start.Date, y = projectID, color = as.factor(IT.Board)
@@ -249,8 +251,8 @@ output$projtimeline <- renderPlot({
   
   gantt + geom_vline(data = milestone2.df, aes(xintercept = as.integer(milestone)), linetype = "dashed") +
     geom_text(data = milestone2.df, aes(x = milestone,
-#                                       y = (length(milestone) - nchar(as.vector(descrip))/5), # need access to proj.df
-                                        y = 15,
+                                       y = (20 - nchar(as.vector(descrip))/5), # need access to proj.df
+#                                        y = 15,
                                        label=descrip),
               angle = 90, colour = "black", text = element_text(size = 14)) 
 })
