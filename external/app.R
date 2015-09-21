@@ -32,12 +32,13 @@ projects.df$Senior.Supplier <-
   as.factor(projects.df$Senior.Supplier)
 projects.df$Senior.User <- as.factor(projects.df$Senior.User)
 ## Re-order data.frame according to this: http://stackoverflow.com/a/32333974/1659890
-## Note use of `rev` to accommodate use of ggplot later
 projects.df <-
-  projects.df[rev(order(
-    projects.df$Budget.Requested, projects.df$Project.Short.Name
-  )),]
+  projects.df[order(
+    projects.df$Project.Start.Date, projects.df$Project.Short.Name
+  ),]
 projects.df$projectID <- as.factor(nrow(projects.df):1)
+
+
 
 ## ================== Project Summary Text  ============================
 
@@ -58,7 +59,7 @@ output$projSummaryText <- renderUI(HTML(
 commsplanMultiDay.sheet <-
   gs_key("1ZWxJhJM9p6UaoQnBOHUsuyfht40OaEw4qKybVdFtjTc",
          visibility = "public")
-commsplanMultiDay.df <<- gs_read(commsplanMultiDay.sheet)
+commsplanMultiDay.df <<- gs_read(commsplanMultiDay.sheet, ws = "Approved-Data")
 commsplanMultiDay.df$Action <<-
   as.factor(commsplanMultiDay.df$Action)
 # commsplanMultiDay.df$Start.Date <<-
@@ -101,8 +102,6 @@ trainingEvents.sheet <- gs_key("13R1LyUVXSr82N7eifN0DDN-PAFvhv8Cyyi8Vm5sJs8U",
                                visibility = "public")
 trainingEvents.df <- gs_read(trainingEvents.sheet)
 trainingEvents.df$Source <- factor(trainingEvents.df$Source)
-#trainingEvents.df$Department <- factor(trainingEvents.df$Department)
-#trainingEvents.df$Audience <- factor(trainingEvents.df$Audience)
 trainingEvents.df$Category <- factor(trainingEvents.df$Category)
 trainingEvents.df$Software <- factor(trainingEvents.df$Software)
 trainingEvents.df$Programming.Language <- factor(trainingEvents.df$Programming.Language)
@@ -151,12 +150,12 @@ eventFreq.df$monthweek <- weekOfMonth(eventFreq.df$date)
 
 # ===================== Project Timeline Outputs ===============================
 
-output$projDeleteUI <- renderUI(
-  selectInput(
-    'projDelete', 'Select Project to Delete', projects.df$Project.Short.Name, selectize =
-      TRUE
-  )
-)
+# output$projDeleteUI <- renderUI(
+#   selectInput(
+#     'projDelete', 'Select Project to Delete', projects.df$Project.Short.Name, selectize =
+#       TRUE
+#   )
+# )
 
 earliest.proj.start <-
   reactive(year(min(projects.df$Project.Start.Date)))
@@ -215,30 +214,10 @@ output$projtimeline <- renderPlot({
   
   if (nrow(proj.df) == 0)
     return(NULL)
-  
-  ## Note use of `rev` to accommodate use of ggplot later
+
   proj.df <-
-    proj.df[rev(order(proj.df$Budget.Requested, proj.df$Project.Short.Name)),]
+    proj.df[order(proj.df$Project.Start.Date, proj.df$Project.Short.Name),]
   
-  nGanttItems <- nrow(proj.df)
-  
-#   base <-
-#     ggplot(proj.df, aes(
-#       x = Project.Start.Date, y = projectID, color = as.factor(IT.Board)
-#     ))
-#   gantt <- {
-#     base +
-#       scale_y_discrete(breaks = proj.df$projectID, labels = proj.df$Project.Short.Name) +
-#       geom_segment(aes(xend = Project.End.Date, y = projectID, yend = projectID), size = 5)
-#   }
-#   gantt <-
-#     gantt + ylab(NULL) + xlab(NULL) + labs(color = "IT Board") + guides(color = guide_legend(title.hjust = 0.5))
-#   gantt <-
-#     gantt + scale_x_datetime(
-#       breaks = "3 month", labels = date_format("%Y-%b"), minor_breaks = "3 month"
-#     )
-#   gantt + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + geom_vline(xintercept = as.integer(as.POSIXct(today())), linetype = "dashed")
-#   
   base <-
     ggplot(proj.df, aes(
       x = Project.Start.Date, y = projectID, color = as.factor(IT.Board)
@@ -278,7 +257,7 @@ output$projTimelineSummary <- renderUI({
     subset(projData, subset = IT.Board %in% input$selITBoard)
   
   projData <-
-    projData[order(projData$Budget.Requested, projData$Project.Short.Name),]
+    projData[rev(order(projData$Project.Start.Date, projData$Project.Short.Name)),]
   projData <- projData[round(input$projtimeline_click$y),]
   
   
@@ -535,12 +514,68 @@ output$resourceTreemapSummary <-
 
 # ===================== Calendar Heatmap ===============================
 
+
+allTrainingSoftware <- reactive(levels(trainingEvents.df$Software))
+allTrainingPLanguages <- reactive(levels(trainingEvents.df$Programming.Language))
+allTrainingCategories <- reactive(levels(trainingEvents.df$Category))
+
+output$trainingCategoriesUI <- renderUI({
+  tagList(
+    selectInput('selCategories', 'Training Category', sort(allTrainingCategories()), 
+                selected = sort(allTrainingCategories()),  multiple = TRUE, selectize = TRUE),
+    tags$style(type="text/css", "select#selCategories + .selectize-control{ width: 800px}")
+  )
+})
+
+
 output$trainingHeatmapUI <- renderUI({
   plotOutput("trainingHeatmapPlot", height = 500,
              click = "trainingHeatmapPlot_click")
 })
 
 output$trainingHeatmapPlot <- renderPlot({
+  
+  training.df <-
+    subset(
+      trainingEvents.df, subset = Category %in% input$selCategories
+    )
+  
+  ## Count total events on each day:
+  eventFreq.df <- as.data.frame(table(training.df$Date))
+  colnames(eventFreq.df) <- c("date","Freq")
+  eventFreq.df$date <- as.POSIXct(eventFreq.df$date)
+  
+  ## http://www.r-bloggers.com/ggplot2-time-series-heatmaps/
+  ### Function to calculate week of month:
+  weekOfMonth <- function(x){
+    weekN <- function(x) as.numeric(format(x, "%U"))
+    weekN(x) - weekN(as.Date(cut(x, "month"))) + 1
+  } 
+  # Factor the eventFreq.df
+  # We will facet by year ~ month, and each subgraph will
+  # show week-of-month versus weekday
+  # the year is simple
+  eventFreq.df$year<-as.numeric(as.POSIXlt(eventFreq.df$date)$year+1900)
+  # the month too 
+  eventFreq.df$month<-as.numeric(as.POSIXlt(eventFreq.df$date)$mon+1)
+  # but turn months into ordered facors to control the appearance/ordering in the presentation
+  eventFreq.df$monthf<-factor(eventFreq.df$month,levels=as.character(1:12),labels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"),ordered=TRUE)
+  # the day of week is again easily found
+  eventFreq.df$weekday = as.POSIXlt(eventFreq.df$date)$wday
+  # again turn into factors to control appearance/abbreviation and ordering
+  # I use the reverse function rev here to order the week top down in the graph
+  # you can cut it out to reverse week order
+  eventFreq.df$weekdayf<-factor(eventFreq.df$weekday,levels=rev(1:7),labels=rev(c("Mon","Tue","Wed","Thu","Fri","Sat","Sun")),ordered=TRUE)
+  # the monthweek part is a bit trickier 
+  # first a factor which cuts the eventFreq.dfa into month chunks
+  eventFreq.df$yearmonth<-as.yearmon(eventFreq.df$date)
+  eventFreq.df$yearmonthf<-factor(eventFreq.df$yearmonth)
+  # then find the "week of year" for each day
+  eventFreq.df$week <- as.numeric(format(eventFreq.df$date,"%W"))+1
+  # and now for each monthblock we normalize the week to start at 1 
+  eventFreq.df<-ddply(eventFreq.df,.(yearmonthf),transform,monthweek=1+week-min(week))
+  eventFreq.df$monthweek <- weekOfMonth(eventFreq.df$date)
+  
   events <- eventFreq.df
   
   if (nrow(events) == 0)
@@ -585,14 +620,19 @@ output$trainingHeatmapSummary <- renderUI({
   wellPanel(HTML(
   paste(
     "<p><h1>Events on ",unique(as.character(eventsOnDay$Date)),"</h1></p>",
-    "<table>",
+    "<table class='table'>",
+    "<thead>",
     "<tr>",
-    "<td>Event Title</td><td>Event Category</td><td>Software?</td><td>Link</td>",
+    "<th>Event Title</th><th>Event Category</th><th>Software?</th><th>Link</th>",
+    "</thead>",
+    "<tbody>",
     paste(
-      "<tr>","<td>",eventsOnDay$Event.Title,"</td>","<td>",eventsOnDay$Category,"</td>","<td>",eventsOnDay$Software,"</td>","<td>",eventsOnDay$URL,"</td>","</tr>",sep = "",
+      "<tr>","<td>",eventsOnDay$Event.Title,"</td>","<td>",eventsOnDay$Category,"</td>","<td>",
+      eventsOnDay$Software,"</td>","<td>","<a hef =",eventsOnDay$URL,">",eventsOnDay$URL,"</a>","</td>","</tr>",
+      sep = "",
       collapse = "" ),
-    "</table>",
-    "footer",collapse = ""
+    "</tbody",
+    "</table>",collapse = ""
   )
   )
   

@@ -33,7 +33,7 @@ navbarMenu(
           Selecting an entry in the Gantt Chart will provide a summary at the bottom of this page.</p>
           By default, projects from all IT Boards are displayed. To filter, simply select and delete items below.
           Items can be re-added by typing into the field.</p>
-          Blue dashed lines indicate RDM milestones, and the red line indicates todays date. 
+          Blue dashed lines indicate RDM milestones, and the red line indicates today's date. 
          Labels can be hidden by clicking \"show milestone labels\ at the bottom of the diagram"
         )
         ),

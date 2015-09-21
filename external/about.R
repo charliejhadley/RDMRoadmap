@@ -37,11 +37,13 @@ tabPanel("About",
                         "<p><h1>RDM Projects</h1></p>",
                         "<p>To request that an RDM Project be added to this tool, fill in this Google Form: ","<a href=http://goo.gl/forms/Q4LKIJ7DZP>http://goo.gl/forms/Q4LKIJ7DZP</a>.
                         Note that new projects will not appear within this tool until it has been approved.</p>",
-                        "<p>Request an item to be deleted:</p>",
-                        uiOutput("projDeleteUI"),
                         "<p><h1>Communication Plans</h1></p>",
-                        "<p>To request that an RDM Project be added to this tool, fill in this Google Form: ","<a href=http://goo.gl/forms/Q4LKIJ7DZP>FORM NOT READY</a>.
-                        Note that new projects will not appear within this tool until it has been approved.</p>"
+                        "<p>To request that a new RDM Comms Plan item be added to the tool, fill in this Google Form: ","<a href=http://goo.gl/forms/vjLrPu3fhA>http://goo.gl/forms/vjLrPu3fhA</a>.
+                        Note that new projects will not appear within this tool until it has been approved.</p>",
+                        "<p><h1>RDM Training Events</h1></p>",
+                        "<p>The training events included in this tool have been manually obtained from <a href=http://courses.it.ox.ac.uk>http://courses.ox.ac.uk</a>. ",
+                        "We are discussing the ITLP group how to directly access this data from source, allowing new courses to be added automatically.</p>",
+                        "<p>We will also attempt to include historical training events into this tool.</p>"
                         ,sep = ""
                       )
                     )),

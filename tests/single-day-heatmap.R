@@ -81,7 +81,7 @@ eventFreq.df$monthweek <- weekOfMonth(eventFreq.df$date)
 ## Visualise:
 
 trainingHeatMap <- ggplot(eventFreq.df, aes(monthweek, weekdayf, fill = Freq)) + 
-  geom_tile(colour = "white") + 
+  geom_tile(linetype=1, colour = "white", size=0.4) + 
   facet_grid(year~monthf) + 
   scale_fill_gradient(low="yellow", high="red", na.value="white") +
   xlab("Week of Month") + ylab("")
@@ -93,10 +93,7 @@ trainingHeatMap <- trainingHeatMap + scale_x_continuous(breaks=seq(0.5, 5.5, 1),
                                                 labels = 1:5)
 
 
-baseHeatMap + geom_hline(yintercept = seq(0.5, 5.5, 1), color = "black") + 
-  scale_y_discrete(labels = c("Friday","Thursday","Wednesday","Tuesday","Monday")) +
-  theme(panel.grid.major.y = element_blank())
-  
+
 
 
 

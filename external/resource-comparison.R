@@ -13,7 +13,5 @@ navbarMenu("RDM Resources",
            uiOutput("resourceTreemapTimeSliderUI"),
            uiOutput("resourceTreemapUI"),
            htmlOutput("resourceTreemapSummary")
-         )),
-         tabPanel("Projects Split by Staff",
-                  "I've not been implemented yet")
+         ))
 )

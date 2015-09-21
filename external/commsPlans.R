@@ -23,14 +23,17 @@ navbarMenu("Comms & Events",
            htmlOutput("commsPlanMultiDaySummary")
          )),
          tabPanel(
-           "RDM Events",
+           "RDM Training Events",
            fluidPage(
              wellPanel(
                HTML(paste(
-                 "<h1>BETA</h1></p>",
-                 "This calendar heatmap will display RDM events pulled from a variety of sources, the data displayed is not currently accurate"
+                 "<p>This calendar heatmap visualises all RDM-related training courses currently listed on <a href =http://courses.it.ox.ac.uk>http://courses.it.ox.ac.uk</a></p>",
+                 "<p>The colour of each day indicates the total number of events scheduled for that date, clicking on a date will ",
+                 "provide a summary at the bottom of this page</p>",
+                 "<p>As more data is obtained the available filtering options for this visualisation will be increased</p>"
                ,sep=""))
              ),
+             uiOutput("trainingCategoriesUI"),
              uiOutput("trainingHeatmapUI"),
              uiOutput("trainingHeatmapSummary")
            )
