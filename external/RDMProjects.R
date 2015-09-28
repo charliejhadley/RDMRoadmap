@@ -20,7 +20,8 @@ navbarMenu(
                    "<p><a href='http://blogs.it.ox.ac.uk/acit-rs-team/advice/research-data-management/participant-data-project'>Read more...</a>"
                  ,sep="")
                    )
-        )
+        ),
+        source("external/project-summaries/ORA-Data.R", local = TRUE)$value
       )
     )
   ),
@@ -33,8 +34,7 @@ navbarMenu(
           Selecting an entry in the Gantt Chart will provide a summary at the bottom of this page.</p>
           By default, projects from all IT Boards are displayed. To filter, simply select and delete items below.
           Items can be re-added by typing into the field.</p>
-          Blue dashed lines indicate RDM milestones, and the red line indicates today's date. 
-         Labels can be hidden by clicking \"show milestone labels\ at the bottom of the diagram"
+          Dashed lines indicate RDM milestones, the labels can be hidden by clicking \"show milestone labels\ at the bottom of the diagram"
         )
         ),
       fluidRow(column(6,uiOutput("projTimeSliderUI")),
@@ -48,6 +48,6 @@ navbarMenu(
   tabPanel("Projects Spreadsheet",
            fluidPage(
              uiOutput("projectsDataTableColUI"),
-             dataTableOutput("projectsDataTable")
+             DT::dataTableOutput("projectsDataTable")
            ))
     )

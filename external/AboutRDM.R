@@ -31,7 +31,7 @@ tabPanel("About",
                         ,sep = ""
                       )
                     )),
-           tabPanel("Adding data to these plans",
+           tabPanel("Adding data to this roadmap",
                     HTML(
                       paste(
                         "<p><h1>RDM Projects</h1></p>",

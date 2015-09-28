@@ -12,6 +12,7 @@ library(quantmod)
 library(reshape2)
 library(plyr)
 library(proto) # for geom_text2
+library(DT) 
 ## ======================= Utility Functions =====================
 
 # regex for handling new lines in text
@@ -23,6 +24,7 @@ newlineFn <- function(text){
 
 shinyServer(
   function(input, output, session){
-    source("external/app.R",local = TRUE)
+    source("external/data-processing.R",local = TRUE)
+    source("external/visualisations&UI.R",local = TRUE)
   }
 )

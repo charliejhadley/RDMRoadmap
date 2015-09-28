@@ -23,7 +23,7 @@ navbarMenu("Comms & Events",
            htmlOutput("commsPlanMultiDaySummary")
          )),
          tabPanel(
-           "RDM Training Events",
+           "RDM Training Heatmap",
            fluidPage(
              wellPanel(
                HTML(paste(
@@ -37,5 +37,10 @@ navbarMenu("Comms & Events",
              uiOutput("trainingHeatmapUI"),
              uiOutput("trainingHeatmapSummary")
            )
-         )
+         ),
+         tabPanel("RDM Training Spreadsheet",
+                  fluidPage(
+                    uiOutput("trainingDataTableColUI"),
+                    DT::dataTableOutput("trainingDataTable")
+                  ))
 )
