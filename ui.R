@@ -5,6 +5,7 @@ library(shinythemes)
 
 
 shinyUI(fluidPage(
+  tags$head(includeScript("google-analytics.js")),
   tags$style(type="text/css", "body { overflow-y: scroll; }"),
   theme = shinytheme("cerulean"),
   navbarPage(
