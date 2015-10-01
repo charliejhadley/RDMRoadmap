@@ -145,3 +145,62 @@ eventFreq.df$week <- as.numeric(format(eventFreq.df$date,"%W"))+1
 # and now for each monthblock we normalize the week to start at 1 
 eventFreq.df<-ddply(eventFreq.df,.(yearmonthf),transform,monthweek=1+week-min(week))
 eventFreq.df$monthweek <- weekOfMonth(eventFreq.df$date)
+
+## ======================== Proposed Projects ======================================
+proposedProjects.workbook <-
+  gs_key("10HiEzYEe0VUXyWIuhoruBjLkPFbB8HOryvnf8A1y6YY",
+         visibility = "public")
+proposedProjects.df <- gs_read(proposedProjects.workbook, ws = "Proposed-Projects")
+
+## ================ ORA Data Loading ==================
+oraData.workbook <-
+  gs_key("1dufaAF7nYhXnbZ9c1KYRkuc1lh_LClVv72iqx3bGEFA",
+         visibility = "public")
+oraData.UpdateDate <- gs_read(oraData.workbook, ws = "Updated-Date")
+oraData.UpdateDate <- as.POSIXct(oraData.UpdateDate[[1]])
+
+oraData.df.Summary <- gs_read(oraData.workbook, ws = "Summary")
+oraData.df.FundingGrants <- gs_read(oraData.workbook, ws = "Funding-Grants")
+oraData.df.TimeSeries <- gs_read(oraData.workbook, ws = "TimeSeries")
+
+oraData.FundingGrants <- gs_read(oraData.workbook, ws = "Funding-Grants")
+
+oraData.FundingGrants <-
+  oraData.FundingGrants[rev(order(
+    oraData.FundingGrants$Number.of.Projects, oraData.FundingGrants$Funder)),]
+
+
+
+
+# # projects.df$Project.Start.Date <-
+# #   as.POSIXct(projects.df$Project.Start.Date)
+# # projects.df$Project.End.Date <-
+# #   as.POSIXct(projects.df$Project.End.Date)
+# projects.df$Project.Start.Date <- {
+#   ymd <- ymd(projects.df$Project.Start.Date)
+#   mdy <- mdy(projects.df$Project.Start.Date)
+#   ymd[is.na(ymd)] <- mdy[is.na(ymd)]
+#   force_tz(ymd, tzone = "GMT")
+# }
+# projects.df$Project.End.Date <- {
+#   ymd <- ymd(projects.df$Project.End.Date)
+#   mdy <- mdy(projects.df$Project.End.Date)
+#   ymd[is.na(ymd)] <- mdy[is.na(ymd)]
+#   force_tz(ymd, tzone = "GMT")
+# }
+# projects.df$Project.Short.Name <-
+#   as.character(projects.df$Project.Short.Name)
+# projects.df$IT.Board <- as.factor(projects.df$IT.Board)
+# projects.df$Project.Sponsor <-
+#   as.factor(projects.df$Project.Sponsor)
+# projects.df$Project.Manager <-
+#   as.factor(projects.df$Project.Manager)
+# projects.df$Senior.Supplier <-
+#   as.factor(projects.df$Senior.Supplier)
+# projects.df$Senior.User <- as.factor(projects.df$Senior.User)
+# ## Re-order data.frame according to this: http://stackoverflow.com/a/32333974/1659890
+# projects.df <-
+#   projects.df[order(
+#     projects.df$Project.Start.Date, projects.df$Project.Short.Name
+#   ),]
+# projects.df$projectID <- as.factor(nrow(projects.df):1)

@@ -492,3 +492,36 @@ output$trainingDataTableColUI <-
 output$trainingDataTable <-
   DT::renderDataTable(trainingEvents.df[, input$training_Cols, drop = FALSE],
                       filter = "top")
+
+## ============================= Proposed Projects ============================
+
+output$proposedProjectsDataTable <-
+  DT::renderDataTable(proposedProjects.df,
+                      filter = "top")
+
+## ============================ ORA Data ======================================
+
+
+output$oraData_DepositsAndPublishedPlot <- renderPlot({
+  oraMelted <- melt(as.data.frame(oraData.df.TimeSeries),  id.vars = 'Report.Date', variable.name = 'series')
+  oraMelted$Report.Date <- as.POSIXct(oraMelted$Report.Date)
+  base <- ggplot(oraMelted, aes(Report.Date, value))
+  plot <- base + geom_area(aes(group = series, fill= series), position = 'identity') + geom_point(aes(color = series), color = "black")
+  plot <- plot + xlab("Date") + ylab("Number of Deposits/Published")
+  plot + scale_fill_discrete(name="",
+                             breaks=c("Datasets.Deposited", "Datasets.Published"),
+                             labels=c("Datasets Deposited", "Datasets Published")) +
+    scale_y_continuous(breaks = seq(0,round(max(oraMelted$value)+5,-1),5)) +
+    scale_x_datetime(breaks = "1 month", labels = date_format("%Y-%b"), minor_breaks = "1 month") + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+})
+
+output$oraData_FundersPlot <- renderPlot({
+  ggplot(oraData.FundingGrants, aes(x = rev(reorder(Funder,Number.of.Projects)), 
+                                    y = Number.of.Projects, fill = Funder)) + geom_bar(stat="identity") +
+    scale_fill_hue(l=40) + theme(legend.position = "none", 
+                                 axis.text.x = element_text(face = "bold", color = "black", size = 12, angle = 45, hjust = 1)) + 
+    xlab("Funding Body") + ylab("Number of Projects")
+})
+
+

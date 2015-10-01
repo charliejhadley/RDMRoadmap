@@ -5,7 +5,7 @@
 navbarMenu(
   "RDM Projects",
   tabPanel(
-    "Projects Description",
+    "Projects Details",
     fluidPage(
       navlistPanel(
         "",
@@ -26,7 +26,7 @@ navbarMenu(
     )
   ),
   tabPanel(
-    "Projects Timeline",
+    "Funded Projects Timeline",
     fluidPage(
       wellPanel(
         HTML(
@@ -45,9 +45,22 @@ navbarMenu(
       htmlOutput("projTimelineSummary")
         )
     ),
-  tabPanel("Projects Spreadsheet",
+  tabPanel("Funded Projects Spreadsheet",
            fluidPage(
              uiOutput("projectsDataTableColUI"),
              DT::dataTableOutput("projectsDataTable")
+           )),
+  tabPanel("Proposed Projects Spreadsheet",
+           fluidPage(
+             wellPanel(
+               HTML(
+                 "The projects listed below have not yet been approved for funding. It is advised that project managers 
+                 refer to these projects before beginning a new project proposal to investigate potential collaborators 
+                 and to inform project planning before submitting to funding bodies."
+               )
+             ),
+             uiOutput("proposedUI"),
+             uiOutput("proposedProjectsDataTableColUI"),
+             DT::dataTableOutput("proposedProjectsDataTable")
            ))
     )
