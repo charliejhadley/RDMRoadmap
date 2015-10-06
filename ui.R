@@ -12,6 +12,7 @@ shinyUI(fluidPage(
     theme = shinytheme("cerulean"),
     "Research Data Management Roadmap",
     source("external/AboutRDM.R", local = TRUE)$value,
+    source("external/RDMServices.R", local = TRUE)$value,
     source("external/RDMProjects.R", local = TRUE)$value,
     source("external/RDMComms&Training.R", local = TRUE)$value,
     source("external/RDMResources.R", local = TRUE)$value

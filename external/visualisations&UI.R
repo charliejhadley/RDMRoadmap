@@ -517,11 +517,11 @@ output$oraData_DepositsAndPublishedPlot <- renderPlot({
 })
 
 output$oraData_FundersPlot <- renderPlot({
-  ggplot(oraData.FundingGrants, aes(x = rev(reorder(Funder,Number.of.Projects)), 
+  ggplot(oraData.FundingGrants, aes(x = rev(funderID), 
                                     y = Number.of.Projects, fill = Funder)) + geom_bar(stat="identity") +
     scale_fill_hue(l=40) + theme(legend.position = "none", 
                                  axis.text.x = element_text(face = "bold", color = "black", size = 12, angle = 45, hjust = 1)) + 
-    xlab("Funding Body") + ylab("Number of Projects")
+    xlab("Funding Body") + ylab("Number of Projects") + scale_x_discrete(breaks = oraData.FundingGrants$funderID, labels = rev(oraData.FundingGrants$Funder)) 
 })
 
 

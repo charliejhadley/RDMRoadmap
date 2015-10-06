@@ -20,8 +20,7 @@ navbarMenu(
                    "<p><a href='http://blogs.it.ox.ac.uk/acit-rs-team/advice/research-data-management/participant-data-project'>Read more...</a>"
                  ,sep="")
                    )
-        ),
-        source("external/project-summaries/ORA-Data.R", local = TRUE)$value
+        )
       )
     )
   ),

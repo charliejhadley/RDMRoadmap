@@ -169,6 +169,8 @@ oraData.FundingGrants <-
   oraData.FundingGrants[rev(order(
     oraData.FundingGrants$Number.of.Projects, oraData.FundingGrants$Funder)),]
 
+oraData.FundingGrants$funderID <- as.factor(nrow(oraData.FundingGrants):1)
+
 
 
 
