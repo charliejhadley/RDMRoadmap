@@ -150,26 +150,26 @@ eventFreq.df$monthweek <- weekOfMonth(eventFreq.df$date)
 proposedProjects.workbook <-
   gs_key("10HiEzYEe0VUXyWIuhoruBjLkPFbB8HOryvnf8A1y6YY",
          visibility = "public")
-proposedProjects.df <- gs_read(proposedProjects.workbook, ws = "Proposed-Projects")
+proposedProjects.df <<- gs_read(proposedProjects.workbook, ws = "Proposed-Projects")
 
 ## ================ ORA Data Loading ==================
 oraData.workbook <-
   gs_key("1dufaAF7nYhXnbZ9c1KYRkuc1lh_LClVv72iqx3bGEFA",
          visibility = "public")
-oraData.UpdateDate <- gs_read(oraData.workbook, ws = "Updated-Date")
-oraData.UpdateDate <- as.POSIXct(oraData.UpdateDate[[1]])
+oraData.UpdateDate <<- gs_read(oraData.workbook, ws = "Updated-Date")
+oraData.UpdateDate <<- as.POSIXct(oraData.UpdateDate[[1]])
 
-oraData.df.Summary <- gs_read(oraData.workbook, ws = "Summary")
-oraData.df.FundingGrants <- gs_read(oraData.workbook, ws = "Funding-Grants")
-oraData.df.TimeSeries <- gs_read(oraData.workbook, ws = "TimeSeries")
+oraData.df.Summary <<- gs_read(oraData.workbook, ws = "Summary")
+oraData.df.FundingGrants <<- gs_read(oraData.workbook, ws = "Funding-Grants")
+oraData.df.TimeSeries <<- gs_read(oraData.workbook, ws = "TimeSeries")
 
-oraData.FundingGrants <- gs_read(oraData.workbook, ws = "Funding-Grants")
+oraData.FundingGrants <<- gs_read(oraData.workbook, ws = "Funding-Grants")
 
-oraData.FundingGrants <-
+oraData.FundingGrants <<-
   oraData.FundingGrants[rev(order(
     oraData.FundingGrants$Number.of.Projects, oraData.FundingGrants$Funder)),]
 
-oraData.FundingGrants$funderID <- as.factor(nrow(oraData.FundingGrants):1)
+oraData.FundingGrants$funderID <<- as.factor(nrow(oraData.FundingGrants):1)
 
 
 
