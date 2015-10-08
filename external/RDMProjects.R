@@ -42,7 +42,8 @@ navbarMenu(
       fluidRow(column(12,uiOutput("hideMilestonesUI"))),
       ## Selected point output,
       htmlOutput("projTimelineSummary")
-        )
+        ),
+    value = 'projecttimeline'
     ),
   tabPanel("Funded Projects Spreadsheet",
            fluidPage(
@@ -61,5 +62,6 @@ navbarMenu(
              uiOutput("proposedUI"),
              uiOutput("proposedProjectsDataTableColUI"),
              DT::dataTableOutput("proposedProjectsDataTable")
-           ))
+           )),
+  value = "foo"
     )

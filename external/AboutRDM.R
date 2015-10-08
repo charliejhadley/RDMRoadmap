@@ -30,7 +30,8 @@ tabPanel("About",
                         "Attribution: <a href=http://www.dcc.ac.uk/resources/curation-lifecycle-model>http://www.dcc.ac.uk/resources/curation-lifecycle-model</a>"
                         ,sep = ""
                       )
-                    )),
+                    ),
+                    value = 'lifecycle'),
            tabPanel("Adding data to this roadmap",
                     HTML(
                       paste(
