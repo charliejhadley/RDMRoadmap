@@ -512,7 +512,7 @@ output$oraData_DepositsAndPublishedPlot <- renderPlot({
                              breaks=c("Datasets.Deposited", "Datasets.Published"),
                              labels=c("Datasets Deposited", "Datasets Published")) +
     scale_y_continuous(breaks = seq(0,round(max(oraMelted$value)+5,-1),5)) +
-    scale_x_datetime(breaks = "1 month", labels = date_format("%Y-%b"), minor_breaks = "1 month") + 
+    scale_x_datetime(breaks = "1 month", labels = date_format("%d-%b-%Y"), minor_breaks = "1 month") + 
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 })
 

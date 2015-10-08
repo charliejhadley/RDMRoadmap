@@ -162,6 +162,8 @@ oraData.UpdateDate <<- as.POSIXct(oraData.UpdateDate[[1]])
 oraData.df.Summary <<- gs_read(oraData.workbook, ws = "Summary")
 oraData.df.FundingGrants <<- gs_read(oraData.workbook, ws = "Funding-Grants")
 oraData.df.TimeSeries <<- gs_read(oraData.workbook, ws = "TimeSeries")
+oraData.df.TimeSeries$Report.Date <- as.POSIXct(sapply(oraData.df.TimeSeries$Report.Date, function(x)paste(x,"12:00:00",sep=" ")),tz="GMT")
+
 
 oraData.FundingGrants <<- gs_read(oraData.workbook, ws = "Funding-Grants")
 
