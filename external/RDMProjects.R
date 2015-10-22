@@ -5,11 +5,12 @@
 navbarMenu(
   "RDM Projects",
   tabPanel(
-    "Projects Details",
+    "About RDM Projects",
     fluidPage(
       navlistPanel(
-        "",
-        tabPanel("RDM Projects",
+        # "RDM Project Details",
+        header = "",
+        tabPanel("Overview",
                  uiOutput("projSummaryText")
         ),
         tabPanel("Participant Data Project",
