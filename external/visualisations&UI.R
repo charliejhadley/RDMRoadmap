@@ -524,4 +524,22 @@ output$oraData_FundersPlot <- renderPlot({
     xlab("Funding Body") + ylab("Number of Projects") + scale_x_discrete(breaks = oraData.FundingGrants$funderID, labels = rev(oraData.FundingGrants$Funder)) 
 })
 
+## ============================ ORDS Usage ======================================
+
+output$ords_FullandTrialPlot <- renderPlot({
+  ordsMelted <- melt(as.data.frame(ords.FullAndTrial),  id.vars = 'Date', variable.name = 'series')
+  ordsMelted$Date <- as.POSIXct(ordsMelted$Date)
+  ordsMelted$series <- factor(ordsMelted$series, levels = c("Trial.Projects","Full.Projects")) # Order factors for geom_area
+  base <- ggplot(ordsMelted, aes(Date, value))
+  plot <- base + geom_area(aes(group = series, fill= series), position = "identity") + geom_point(aes(color = series), color = "black")
+  plot <- plot + xlab("Date") + ylab("Total Number of Projects")
+  plot + scale_fill_discrete(name="Legened Title",
+                             breaks=c("Full.Projects","Trial.Projects"),
+                             labels=c("Full Projects","Trial Projects")) +
+    scale_y_continuous(breaks = seq(0,round(max(ordsMelted$value)+5,-1),5)) +
+    scale_x_datetime(breaks = "1 month", labels = date_format("%d-%b-%Y"), minor_breaks = "1 month") + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+})
+
+
 

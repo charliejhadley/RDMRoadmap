@@ -173,8 +173,13 @@ oraData.FundingGrants <<-
 
 oraData.FundingGrants$funderID <<- as.factor(nrow(oraData.FundingGrants):1)
 
+## ================ ORDS Data Loading ==================
 
-
+ords.workbook <-
+  gs_key("15WCvJcpJCVE1TPWut4iPWM0B0yQ4IrhwWPUJmTGwR6A",
+         visibility = "private")
+ords.FullAndTrial <<- gs_read(ords.workbook, ws = "Sheet1")
+ords.FullAndTrial$Date <- force_tz(dmy(ords.FullAndTrial$Date), tzone = "GMT")
 
 # # projects.df$Project.Start.Date <-
 # #   as.POSIXct(projects.df$Project.Start.Date)

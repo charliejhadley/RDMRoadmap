@@ -21,5 +21,10 @@ navbarMenu(
   tabPanel(
     "ORA Data Summary",
     source("external/project-summaries/ORA-Data.R", local = TRUE)$value
-    )
+    ),
+  tabPanel(
+    "ORDS Summary",
+    source("external/project-summaries/ORDS-Data.R", local = TRUE)$value,
+    value = 'ordssummary'
+  )
   )
