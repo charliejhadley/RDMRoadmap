@@ -20,11 +20,30 @@ navbarMenu(
   ),
   tabPanel(
     "ORA Data Summary",
-    source("external/project-summaries/ORA-Data.R", local = TRUE)$value
+    fluidPage(wellPanel(HTML(
+      paste(
+        "<h1>ORA Data Summary</h1>",
+        "<p>The ORA Data project is comprised of three sub projects: VIPR1, VIPR2 and VIPR3.</p>",
+        "<p>Note that in the Projects Spreadsheet the project has been separated into it's constituent parts,
+        to update the content of this page please email david.tomkins@bodleian.ox.ac.uk or martin.hadley@it.ox.ac.uk</p>"
+        ,sep = ""
+      )
+    )),
+    plotOutput("oraData_DepositsAndPublishedPlot"),
+    plotOutput("oraData_FundersPlot")),
+    value = 'oradata'
     ),
   tabPanel(
-    "ORDS Summary",
-    source("external/project-summaries/ORDS-Data.R", local = TRUE)$value,
-    value = 'ordssummary'
-  )
+    "ORDS Data Summary",
+    fluidPage(wellPanel(HTML(
+      paste(
+        "<h1>ORDS Summary</h1>",
+        "<p>ORDS is the University's repository for \"live\" research data, datasets that are being actively developed and collaborated on before
+        being submitted to the long-term repository; ORA Data.</p>",
+        sep = ""
+      )
+    )),
+    plotOutput("ords_FullandTrialPlot")),
+    value = 'ordsdata'
+    )
   )

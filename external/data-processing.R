@@ -180,6 +180,7 @@ ords.workbook <-
          visibility = "private")
 ords.FullAndTrial <<- gs_read(ords.workbook, ws = "Sheet1")
 ords.FullAndTrial$Date <- force_tz(dmy(ords.FullAndTrial$Date), tzone = "GMT")
+ords.FullAndTrial <- ords.FullAndTrial[c(1,2,3)]
 
 # # projects.df$Project.Start.Date <-
 # #   as.POSIXct(projects.df$Project.Start.Date)
