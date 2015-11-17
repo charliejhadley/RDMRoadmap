@@ -1,3 +1,20 @@
+# ggplot Color Function
+
+gg_color_hue <- function(n) {
+  hues = seq(15, 375, length = n + 1)
+  hcl(h = hues, l = 65, c = 100)[1:n]
+}
+
+project.color.df <- data.frame(color = gg_color_hue(length(levels(projects.df$IT.Board))), IT.Board = levels(projects.df$IT.Board))
+
+colorColumn <- vector()
+for(i in 1:nrow(projects.df)){
+  colorColumn <- append(colorColumn, as.vector(project.color.df[project.color.df$IT.Board == projects.df[i,]$IT.Board,]$color))
+}
+
+projects.df$IT.Board.Color <- as.factor(colorColumn)
+
+
 # ===================== Project Timeline Outputs ===============================
 
 earliest.proj.start <-
@@ -22,7 +39,7 @@ output$projITBoardUI <- renderUI({
   )
 })
 
-output$hideMilestonesUI <-renderUI({
+output$hideMilestonesUI <- renderUI({
   checkboxInput("hideMilestones","Hide milestone labels", value = FALSE)
 })
 
@@ -42,12 +59,18 @@ output$projtimeline <- renderPlot({
                                                   "-"),]
   
   
-  milestone.df <- data.frame(milestone = c(as.POSIXct("2010-10-01"),as.POSIXct("2012-07-01"),
-                                           as.POSIXct("2014-12-01"),as.POSIXct("2014-08-01"),as.POSIXct(today())),
-                             descrip =c("RDM Website Launched","RDM Policy Ratified","ORA-Data Launched","ORDS Launched","Today"), 
-                             colour = c(rep("red",4),"blackFOOBAR"),
-                             ganttItems = rep(nrow(proj.df),5) # necessary to insert data into geom_text(aes)
-  )
+  milestone.df <-
+    data.frame(
+      milestone = c(
+        as.POSIXct("2010-10-01"),as.POSIXct("2012-07-01"),
+        as.POSIXct("2014-12-01"),as.POSIXct("2014-08-01"),as.POSIXct(today())
+      ),
+      descrip = c(
+        "RDM Website Launched","RDM Policy Ratified","ORA-Data Launched","ORDS Launched","Today"
+      ),
+      colour = c(rep("red",4),"blackFOOBAR"),
+      ganttItems = rep(nrow(proj.df),5) # necessary to insert data into geom_text(aes)
+    )
   
   milestone.df <-
     milestone.df[milestone.df$milestone > paste(input$projTimelineRange[1],"01","01",sep =
@@ -74,14 +97,23 @@ output$projtimeline <- renderPlot({
   gantt <-
     gantt + ylab(NULL) + xlab(NULL) + labs(color = "IT Board") + guides(color = guide_legend(title.hjust = 0.5))
   gantt <-
-    gantt + scale_x_datetime(breaks = "3 month", labels = date_format("%Y-%b"), minor_breaks = "3 month") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    gantt + scale_x_datetime(
+      breaks = "3 month", labels = date_format("%Y-%b"), minor_breaks = "3 month"
+    ) + theme(axis.text.x = element_text(angle = 45, hjust = 1))
   
-  gantt + geom_vline(data = milestone.df, aes(xintercept = as.integer(milestone), guide = FALSE), linetype = "dashed", guide = FALSE) +
-    if(!input$hideMilestones)
-      geom_text(data = milestone.df, aes(x = milestone,
-                                         y = (2 + nchar(as.vector(descrip))/5), 
-                                         label = descrip),
-                angle = 90, color = "black", text = element_text(size = 14), guide = FALSE)
+  gantt + geom_vline(
+    data = milestone.df, aes(xintercept = as.integer(milestone), guide = FALSE), linetype = "dashed", guide = FALSE
+  ) +
+    if (!input$hideMilestones)
+      geom_text(
+        data = milestone.df, aes(
+          x = milestone,
+          y = (2 + nchar(as.vector(descrip)) /
+                 5),
+          label = descrip
+        ),
+        angle = 90, color = "black", text = element_text(size = 14), guide = FALSE
+      )
 })
 
 
@@ -104,7 +136,7 @@ output$projTimelineSummary <- renderUI({
   
   
   wellPanel(
-    titlePanel(projData$Project.Short.Name),
+    titlePanel(projData$Project.Title),
     HTML(
       paste("<b>Project Manager:</b> ",projData$Project.Manager,"<p>")
     ),
@@ -324,9 +356,11 @@ output$resourceTreemapSummary <-
   renderUI({
     # print(getTreemapClickID()$Project.Short.Name)
     
-    if (class(try(getTreemapClickID()))  ==  "try-error")
+    if (class(try(getTreemapClickID())
+    )  ==  "try-error")
       return(NULL)
-    if (try(is.null(getTreemapClickID()$Project.Short.Name), silent = TRUE))
+    if (try(is.null(getTreemapClickID()$Project.Short.Name), silent = TRUE)
+    )
       return(NULL)
     
     projData <-
@@ -354,14 +388,20 @@ output$resourceTreemapSummary <-
 
 
 allTrainingSoftware <- reactive(levels(trainingEvents.df$Software))
-allTrainingPLanguages <- reactive(levels(trainingEvents.df$Programming.Language))
-allTrainingCategories <- reactive(levels(trainingEvents.df$Category))
+allTrainingPLanguages <-
+  reactive(levels(trainingEvents.df$Programming.Language))
+allTrainingCategories <-
+  reactive(levels(trainingEvents.df$Category))
 
 output$trainingCategoriesUI <- renderUI({
   tagList(
-    selectInput('selCategories', 'Training Category', sort(allTrainingCategories()), 
-                selected = sort(allTrainingCategories()),  multiple = TRUE, selectize = TRUE),
-    tags$style(type="text/css", "select#selCategories + .selectize-control{ width: 800px}")
+    selectInput(
+      'selCategories', 'Training Category', sort(allTrainingCategories()),
+      selected = sort(allTrainingCategories()),  multiple = TRUE, selectize = TRUE
+    ),
+    tags$style(
+      type = "text/css", "select#selCategories + .selectize-control{ width: 800px}"
+    )
   )
 })
 
@@ -372,11 +412,8 @@ output$trainingHeatmapUI <- renderUI({
 })
 
 output$trainingHeatmapPlot <- renderPlot({
-  
   training.df <-
-    subset(
-      trainingEvents.df, subset = Category %in% input$selCategories
-    )
+    subset(trainingEvents.df, subset = Category %in% input$selCategories)
   
   ## Count total events on each day:
   eventFreq.df <- as.data.frame(table(training.df$Date))
@@ -385,33 +422,47 @@ output$trainingHeatmapPlot <- renderPlot({
   
   ## http://www.r-bloggers.com/ggplot2-time-series-heatmaps/
   ### Function to calculate week of month:
-  weekOfMonth <- function(x){
-    weekN <- function(x) as.numeric(format(x, "%U"))
+  weekOfMonth <- function(x) {
+    weekN <- function(x)
+      as.numeric(format(x, "%U"))
     weekN(x) - weekN(as.Date(cut(x, "month"))) + 1
-  } 
+  }
   # Factor the eventFreq.df
   # We will facet by year ~ month, and each subgraph will
   # show week-of-month versus weekday
   # the year is simple
-  eventFreq.df$year<-as.numeric(as.POSIXlt(eventFreq.df$date)$year+1900)
-  # the month too 
-  eventFreq.df$month<-as.numeric(as.POSIXlt(eventFreq.df$date)$mon+1)
+  eventFreq.df$year <-
+    as.numeric(as.POSIXlt(eventFreq.df$date)$year + 1900)
+  # the month too
+  eventFreq.df$month <-
+    as.numeric(as.POSIXlt(eventFreq.df$date)$mon + 1)
   # but turn months into ordered facors to control the appearance/ordering in the presentation
-  eventFreq.df$monthf<-factor(eventFreq.df$month,levels=as.character(1:12),labels=c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"),ordered=TRUE)
+  eventFreq.df$monthf <-
+    factor(
+      eventFreq.df$month,levels = as.character(1:12),labels = c(
+        "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
+      ),ordered = TRUE
+    )
   # the day of week is again easily found
   eventFreq.df$weekday = as.POSIXlt(eventFreq.df$date)$wday
   # again turn into factors to control appearance/abbreviation and ordering
   # I use the reverse function rev here to order the week top down in the graph
   # you can cut it out to reverse week order
-  eventFreq.df$weekdayf<-factor(eventFreq.df$weekday,levels=rev(1:7),labels=rev(c("Mon","Tue","Wed","Thu","Fri","Sat","Sun")),ordered=TRUE)
-  # the monthweek part is a bit trickier 
+  eventFreq.df$weekdayf <-
+    factor(
+      eventFreq.df$weekday,levels = rev(1:7),labels = rev(c(
+        "Mon","Tue","Wed","Thu","Fri","Sat","Sun"
+      )),ordered = TRUE
+    )
+  # the monthweek part is a bit trickier
   # first a factor which cuts the eventFreq.dfa into month chunks
-  eventFreq.df$yearmonth<-as.yearmon(eventFreq.df$date)
-  eventFreq.df$yearmonthf<-factor(eventFreq.df$yearmonth)
+  eventFreq.df$yearmonth <- as.yearmon(eventFreq.df$date)
+  eventFreq.df$yearmonthf <- factor(eventFreq.df$yearmonth)
   # then find the "week of year" for each day
-  eventFreq.df$week <- as.numeric(format(eventFreq.df$date,"%W"))+1
-  # and now for each monthblock we normalize the week to start at 1 
-  eventFreq.df<-ddply(eventFreq.df,.(yearmonthf),transform,monthweek=1+week-min(week))
+  eventFreq.df$week <- as.numeric(format(eventFreq.df$date,"%W")) + 1
+  # and now for each monthblock we normalize the week to start at 1
+  eventFreq.df <-
+    ddply(eventFreq.df,.(yearmonthf),transform,monthweek = 1 + week - min(week))
   eventFreq.df$monthweek <- weekOfMonth(eventFreq.df$date)
   
   events <- eventFreq.df
@@ -419,13 +470,14 @@ output$trainingHeatmapPlot <- renderPlot({
   if (nrow(events) == 0)
     return()
   
-  trainingHeatMap <- ggplot(eventFreq.df, aes(monthweek, weekdayf, fill = Freq)) + 
-    geom_tile(colour = "white") + 
-    facet_grid(year~monthf) + 
-    scale_fill_gradient(low="yellow", high="red", na.value="white") +
+  trainingHeatMap <-
+    ggplot(eventFreq.df, aes(monthweek, weekdayf, fill = Freq)) +
+    geom_tile(colour = "white") +
+    facet_grid(year ~ monthf) +
+    scale_fill_gradient(low = "yellow", high = "red", na.value = "white") +
     xlab("Week of Month") + ylab("")
   
-  trainingHeatMap + geom_vline(xintercept=seq(0.5, 5.5, 1)) + geom_hline(yintercept = seq(0.5, 5.5, 1), color = "black") +
+  trainingHeatMap + geom_vline(xintercept = seq(0.5, 5.5, 1)) + geom_hline(yintercept = seq(0.5, 5.5, 1), color = "black") +
     theme(panel.grid.major.y = element_blank(), panel.grid.major.x = element_blank())
   
   
@@ -468,26 +520,25 @@ output$trainingHeatmapSummary <- renderUI({
         "<tr>","<td>",eventsOnDay$Event.Title,"</td>","<td>",eventsOnDay$Category,"</td>","<td>",
         eventsOnDay$Software,"</td>","<td>","<a href =",eventsOnDay$URL,">",eventsOnDay$URL,"</a>","</td>","</tr>",
         sep = "",
-        collapse = "" ),
+        collapse = ""
+      ),
       "</tbody",
       "</table>",collapse = ""
     )
-  )
-  
-  )
+  ))
   
 })
 
 ## Show projects.df as a DataTable
 
 output$trainingDataTableColUI <-
-  renderUI(selectInput(
-    'training_Cols', 'Columns to show:',
-    names(trainingEvents.df)[1:(ncol(trainingEvents.df) - 1)], selected = c(
-      "Event.Title","Category","Date"
-    ),
-    multiple = TRUE
-  ))
+  renderUI(
+    selectInput(
+      'training_Cols', 'Columns to show:',
+      names(trainingEvents.df)[1:(ncol(trainingEvents.df) - 1)], selected = c("Event.Title","Category","Date"),
+      multiple = TRUE
+    )
+  )
 
 output$trainingDataTable <-
   DT::renderDataTable(trainingEvents.df[, input$training_Cols, drop = FALSE],
@@ -503,51 +554,70 @@ output$proposedProjectsDataTable <-
 
 
 output$oraData_DepositsAndPublishedPlot <- renderPlot({
-  oraMelted <- melt(as.data.frame(oraData.df.TimeSeries),  id.vars = 'Report.Date', variable.name = 'series')
+  oraMelted <-
+    melt(
+      as.data.frame(oraData.df.TimeSeries),  id.vars = 'Report.Date', variable.name = 'series'
+    )
   oraMelted$Report.Date <- as.POSIXct(oraMelted$Report.Date)
   base <- ggplot(oraMelted, aes(Report.Date, value))
-  plot <- base + geom_area(aes(group = series, fill= series), position = 'identity') + geom_point(aes(color = series), color = "black")
+  plot <-
+    base + geom_area(aes(group = series, fill = series), position = 'identity') + geom_point(aes(color = series), color = "black")
   plot <- plot + xlab("Date") + ylab("Number of Deposits/Published")
-  plot + scale_fill_discrete(name="",
-                             breaks=c("Datasets.Deposited", "Datasets.Published"),
-                             labels=c("Datasets Deposited", "Datasets Published")) +
-    scale_y_continuous(breaks = seq(0,round(max(oraMelted$value)+5,-1),5)) +
-    scale_x_datetime(breaks = "1 month", labels = date_format("%d-%b-%Y"), minor_breaks = "1 month") + 
+  plot + scale_fill_discrete(
+    name = "",
+    breaks = c("Datasets.Deposited", "Datasets.Published"),
+    labels = c("Datasets Deposited", "Datasets Published")
+  ) +
+    scale_y_continuous(breaks = seq(0,round(max(oraMelted$value) + 5,-1),5)) +
+    scale_x_datetime(
+      breaks = "1 month", labels = date_format("%d-%b-%Y"), minor_breaks = "1 month"
+    ) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 })
 
 output$oraData_FundersPlot <- renderPlot({
-  ggplot(oraData.FundingGrants, aes(x = rev(funderID), 
-                                    y = Number.of.Projects, fill = Funder)) + geom_bar(stat="identity") +
-    scale_fill_hue(l=40) + theme(legend.position = "none", 
-                                 axis.text.x = element_text(face = "bold", color = "black", size = 12, angle = 45, hjust = 1)) + 
-    xlab("Funding Body") + ylab("Number of Projects") + scale_x_discrete(breaks = oraData.FundingGrants$funderID, labels = rev(oraData.FundingGrants$Funder)) 
+  ggplot(oraData.FundingGrants, aes(
+    x = rev(funderID),
+    y = Number.of.Projects, fill = Funder
+  )) + geom_bar(stat = "identity") +
+    scale_fill_hue(l = 40) + theme(
+      legend.position = "none",
+      axis.text.x = element_text(
+        face = "bold", color = "black", size = 12, angle = 45, hjust = 1
+      )
+    ) +
+    xlab("Funding Body") + ylab("Number of Projects") + scale_x_discrete(breaks = oraData.FundingGrants$funderID, labels = rev(oraData.FundingGrants$Funder))
 })
 
 ## ============================ ORDS Usage ======================================
 
 output$ords_FullandTrialPlot <- renderPlot({
-  ordsMelted <- melt(as.data.frame(ords.FullAndTrial),  id.vars = 'Date', variable.name = 'series')
+  ordsMelted <-
+    melt(as.data.frame(ords.FullAndTrial),  id.vars = 'Date', variable.name = 'series')
   ordsMelted$Date <- as.POSIXct(ordsMelted$Date)
-  ordsMelted$series <- factor(ordsMelted$series, levels = c("Trial.Projects","Full.Projects")) # Order factors for geom_area
-  
-  gg_color_hue <- function(n) {
-    hues = seq(15, 375, length=n+1)
-    hcl(h=hues, l=65, c=100)[1:n]
-  }
+  ordsMelted$series <-
+    factor(ordsMelted$series, levels = c("Trial.Projects","Full.Projects")) # Order factors for geom_area
   
   base <- ggplot(ordsMelted, aes(Date, value))
-  plot <- base + geom_area(aes(group = series, fill = series, alpha = series), position = "stack")
+  plot <-
+    base + geom_area(aes(
+      group = series, fill = series, alpha = series
+    ), position = "stack")
   plot <- plot + xlab("Date") + ylab("Total Number of Projects")
-  plot + scale_fill_discrete(name="Legened Title",
-                             breaks=c("Full.Projects","Trial.Projects"),
-                             labels=c("Full Projects","Trial Projects")) +
-    scale_y_continuous(breaks = seq(0,round(sum(ordsMelted[ordsMelted$Date == max(ordsMelted$Date),]$value)+10,-1),5)) +
-    scale_x_datetime(breaks = "1 month", labels = date_format("%d-%b-%Y"), minor_breaks = "1 month") + 
-    scale_fill_manual(values=gg_color_hue(2)) + 
+  plot + scale_fill_discrete(
+    name = "Legened Title",
+    breaks = c("Full.Projects","Trial.Projects"),
+    labels = c("Full Projects","Trial Projects")
+  ) +
+    scale_y_continuous(breaks = seq(0,round(sum(
+      ordsMelted[ordsMelted$Date == max(ordsMelted$Date),]$value
+    ) + 10,-1),5)) +
+    scale_x_datetime(
+      breaks = "1 month", labels = date_format("%d-%b-%Y"), minor_breaks = "1 month"
+    ) +
+    scale_fill_manual(values = gg_color_hue(2)) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-    scale_alpha_manual(values=c(.9, 1),guide=F) +
+    scale_alpha_manual(values = c(.9, 1),guide = F) +
     theme(legend.title = element_text("")) +
     labs(fill = "Project Type")
 })
-
