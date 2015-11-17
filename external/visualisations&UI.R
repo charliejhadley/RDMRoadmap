@@ -530,14 +530,24 @@ output$ords_FullandTrialPlot <- renderPlot({
   ordsMelted <- melt(as.data.frame(ords.FullAndTrial),  id.vars = 'Date', variable.name = 'series')
   ordsMelted$Date <- as.POSIXct(ordsMelted$Date)
   ordsMelted$series <- factor(ordsMelted$series, levels = c("Trial.Projects","Full.Projects")) # Order factors for geom_area
+  
+  gg_color_hue <- function(n) {
+    hues = seq(15, 375, length=n+1)
+    hcl(h=hues, l=65, c=100)[1:n]
+  }
+  
   base <- ggplot(ordsMelted, aes(Date, value))
-  plot <- base + geom_area(aes(group = series, fill= series), position = "identity") + geom_point(aes(color = series), color = "black")
+  plot <- base + geom_area(aes(group = series, fill = series, alpha = series), position = "stack")
   plot <- plot + xlab("Date") + ylab("Total Number of Projects")
   plot + scale_fill_discrete(name="Legened Title",
                              breaks=c("Full.Projects","Trial.Projects"),
                              labels=c("Full Projects","Trial Projects")) +
-    scale_y_continuous(breaks = seq(0,round(max(ordsMelted$value)+5,-1),5)) +
+    scale_y_continuous(breaks = seq(0,round(sum(ordsMelted[ordsMelted$Date == max(ordsMelted$Date),]$value)+10,-1),5)) +
     scale_x_datetime(breaks = "1 month", labels = date_format("%d-%b-%Y"), minor_breaks = "1 month") + 
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    scale_fill_manual(values=gg_color_hue(2)) + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    scale_alpha_manual(values=c(.9, 1),guide=F) +
+    theme(legend.title = element_text("")) +
+    labs(fill = "Project Type")
 })
 
