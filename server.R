@@ -8,11 +8,12 @@ library(dplyr)
 library(lubridate)
 library(googlesheets)
 library(scales)
-library(quantmod)
 library(reshape2)
 library(plyr)
 library(proto) # for geom_text2
 library(DT) 
+library(plotly)
+library(zoo) # for as.yearmon
 ## ======================= Utility Functions =====================
 
 # regex for handling new lines in text

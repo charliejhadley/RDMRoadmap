@@ -2,7 +2,7 @@
 projects.workbook <-
   gs_key("1I6Z94prfJrmSSmD_mwqazkp8Qx8AUmmsp9hAW6bF8yQ",
          visibility = "public")
-projects.df <- gs_read(projects.workbook, ws = "Approved-Data")
+projects.df <- gs_read(projects.workbook, ws = "Approved-Data", check.names = TRUE)
 # projects.df$Project.Start.Date <-
 #   as.POSIXct(projects.df$Project.Start.Date)
 # projects.df$Project.End.Date <-
@@ -57,48 +57,48 @@ output$projSummaryText <- renderUI(HTML(
 commsplanMultiDay.sheet <-
   gs_key("1ZWxJhJM9p6UaoQnBOHUsuyfht40OaEw4qKybVdFtjTc",
          visibility = "public")
-commsplanMultiDay.df <<- gs_read(commsplanMultiDay.sheet, ws = "Approved-Data")
-commsplanMultiDay.df$Action <<-
+commsplanMultiDay.df <- gs_read(commsplanMultiDay.sheet, ws = "Approved-Data", check.names = TRUE)
+commsplanMultiDay.df$Action <-
   as.factor(commsplanMultiDay.df$Action)
-# commsplanMultiDay.df$Start.Date <<-
+# commsplanMultiDay.df$Start.Date <-
 #   as.POSIXct(commsplanMultiDay.df$Start.Date)
-# commsplanMultiDay.df$End.Date <<-
+# commsplanMultiDay.df$End.Date <-
 #   as.POSIXct(commsplanMultiDay.df$End.Date)
 
-commsplanMultiDay.df$Start.Date <<- {
+commsplanMultiDay.df$Start.Date <- {
   ymd <- ymd(commsplanMultiDay.df$Start.Date)
   mdy <- mdy(commsplanMultiDay.df$Start.Date)
   ymd[is.na(ymd)] <- mdy[is.na(ymd)]
   force_tz(ymd, tzone = "GMT")
 }
-commsplanMultiDay.df$End.Date <<- {
+commsplanMultiDay.df$End.Date <- {
   ymd <- ymd(commsplanMultiDay.df$End.Date)
   mdy <- mdy(commsplanMultiDay.df$End.Date)
   ymd[is.na(ymd)] <- mdy[is.na(ymd)]
   force_tz(ymd, tzone = "GMT")
 }
 
-commsplanMultiDay.df$Comms.Type <<-
+commsplanMultiDay.df$Comms.Type <-
   as.factor(commsplanMultiDay.df$Comms.Type)
-commsplanMultiDay.df$Source <<-
+commsplanMultiDay.df$Source <-
   as.factor(commsplanMultiDay.df$Source)
-commsplanMultiDay.df$Department <<-
+commsplanMultiDay.df$Department <-
   as.factor(commsplanMultiDay.df$Department)
-commsplanMultiDay.df$Audience <<-
+commsplanMultiDay.df$Audience <-
   as.factor(commsplanMultiDay.df$Audience)
 ## Re-order data.frame according to this: http://stackoverflow.com/a/32333974/1659890
-commsplanMultiDay.df$Action <<-
+commsplanMultiDay.df$Action <-
   as.character(commsplanMultiDay.df$Action)
-commsplanMultiDay.df <<-
+commsplanMultiDay.df <-
   commsplanMultiDay.df[order(commsplanMultiDay.df$Start.Date, commsplanMultiDay.df$Action),]
-commsplanMultiDay.df$taskID <<-
+commsplanMultiDay.df$taskID <-
   as.factor(nrow(commsplanMultiDay.df):1)
 
 ## ============================ Training Events Data Processing ============================
 
 trainingEvents.sheet <- gs_key("13R1LyUVXSr82N7eifN0DDN-PAFvhv8Cyyi8Vm5sJs8U",
                                visibility = "public")
-trainingEvents.df <- gs_read(trainingEvents.sheet)
+trainingEvents.df <- gs_read(trainingEvents.sheet, check.names = TRUE)
 trainingEvents.df$Source <- factor(trainingEvents.df$Source)
 trainingEvents.df$Category <- factor(trainingEvents.df$Category)
 trainingEvents.df$Software <- factor(trainingEvents.df$Software)
@@ -150,67 +150,34 @@ eventFreq.df$monthweek <- weekOfMonth(eventFreq.df$date)
 proposedProjects.workbook <-
   gs_key("10HiEzYEe0VUXyWIuhoruBjLkPFbB8HOryvnf8A1y6YY",
          visibility = "public")
-proposedProjects.df <<- gs_read(proposedProjects.workbook, ws = "Proposed-Projects")
+proposedProjects.df <- gs_read(proposedProjects.workbook, ws = "Proposed-Projects", check.names = TRUE)
 
 ## ================ ORA Data Loading ==================
 oraData.workbook <-
   gs_key("1dufaAF7nYhXnbZ9c1KYRkuc1lh_LClVv72iqx3bGEFA",
          visibility = "public")
-oraData.UpdateDate <<- gs_read(oraData.workbook, ws = "Updated-Date")
-oraData.UpdateDate <<- as.POSIXct(oraData.UpdateDate[[1]])
+oraData.UpdateDate <- gs_read(oraData.workbook, ws = "Updated-Date", check.names = TRUE)
+oraData.UpdateDate <- as.POSIXct(oraData.UpdateDate[[1]])
 
-oraData.df.Summary <<- gs_read(oraData.workbook, ws = "Summary")
-oraData.df.FundingGrants <<- gs_read(oraData.workbook, ws = "Funding-Grants")
-oraData.df.TimeSeries <<- gs_read(oraData.workbook, ws = "TimeSeries")
+oraData.df.Summary <- gs_read(oraData.workbook, ws = "Summary", check.names = TRUE)
+oraData.df.FundingGrants <- gs_read(oraData.workbook, ws = "Funding-Grants", check.names = TRUE)
+oraData.df.TimeSeries <- gs_read(oraData.workbook, ws = "TimeSeries", check.names = TRUE)
 oraData.df.TimeSeries$Report.Date <- as.POSIXct(sapply(oraData.df.TimeSeries$Report.Date, function(x)paste(x,"12:00:00",sep=" ")),tz="GMT")
 
+oraData.df.FundingGrants <- gs_read(oraData.workbook, ws = "Funding-Grants", check.names = TRUE)
 
-oraData.FundingGrants <<- gs_read(oraData.workbook, ws = "Funding-Grants")
+oraData.df.FundingGrants <-
+  oraData.df.FundingGrants[rev(order(
+    oraData.df.FundingGrants$Number.of.Projects, oraData.df.FundingGrants$Funder)),]
 
-oraData.FundingGrants <<-
-  oraData.FundingGrants[rev(order(
-    oraData.FundingGrants$Number.of.Projects, oraData.FundingGrants$Funder)),]
-
-oraData.FundingGrants$funderID <<- as.factor(nrow(oraData.FundingGrants):1)
+oraData.df.FundingGrants$funderID <- as.factor(nrow(oraData.df.FundingGrants):1)
 
 ## ================ ORDS Data Loading ==================
 
-ords.workbook <-
-  gs_key("15WCvJcpJCVE1TPWut4iPWM0B0yQ4IrhwWPUJmTGwR6A",
-         visibility = "private")
-ords.FullAndTrial <<- gs_read(ords.workbook, ws = "Sheet1")
-ords.FullAndTrial$Date <- force_tz(dmy(ords.FullAndTrial$Date), tzone = "GMT")
-ords.FullAndTrial <- ords.FullAndTrial[c(1,2,3)]
-
-# # projects.df$Project.Start.Date <-
-# #   as.POSIXct(projects.df$Project.Start.Date)
-# # projects.df$Project.End.Date <-
-# #   as.POSIXct(projects.df$Project.End.Date)
-# projects.df$Project.Start.Date <- {
-#   ymd <- ymd(projects.df$Project.Start.Date)
-#   mdy <- mdy(projects.df$Project.Start.Date)
-#   ymd[is.na(ymd)] <- mdy[is.na(ymd)]
-#   force_tz(ymd, tzone = "GMT")
-# }
-# projects.df$Project.End.Date <- {
-#   ymd <- ymd(projects.df$Project.End.Date)
-#   mdy <- mdy(projects.df$Project.End.Date)
-#   ymd[is.na(ymd)] <- mdy[is.na(ymd)]
-#   force_tz(ymd, tzone = "GMT")
-# }
-# projects.df$Project.Short.Name <-
-#   as.character(projects.df$Project.Short.Name)
-# projects.df$IT.Board <- as.factor(projects.df$IT.Board)
-# projects.df$Project.Sponsor <-
-#   as.factor(projects.df$Project.Sponsor)
-# projects.df$Project.Manager <-
-#   as.factor(projects.df$Project.Manager)
-# projects.df$Senior.Supplier <-
-#   as.factor(projects.df$Senior.Supplier)
-# projects.df$Senior.User <- as.factor(projects.df$Senior.User)
-# ## Re-order data.frame according to this: http://stackoverflow.com/a/32333974/1659890
-# projects.df <-
-#   projects.df[order(
-#     projects.df$Project.Start.Date, projects.df$Project.Short.Name
-#   ),]
-# projects.df$projectID <- as.factor(nrow(projects.df):1)
+# Commented out until we can make the googlesheet published to the web
+# ords.workbook <-
+#     gs_key("15WCvJcpJCVE1TPWut4iPWM0B0yQ4IrhwWPUJmTGwR6A",
+#          visibility = "private")
+# ords.FullAndTrial <- gs_read(ords.workbook, ws = "Sheet1", check.names = TRUE)
+# ords.FullAndTrial$Date <- force_tz(dmy(ords.FullAndTrial$Date), tzone = "GMT")
+# ords.FullAndTrial <- ords.FullAndTrial[c(1,2,3)]

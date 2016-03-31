@@ -29,8 +29,8 @@ navbarMenu(
         ,sep = ""
       )
     )),
-    plotOutput("oraData_DepositsAndPublishedPlot"),
-    plotOutput("oraData_FundersPlot")),
+    plotlyOutput("oraData_DepositsAndPublishedPlot"),
+    plotlyOutput("oraData_FundersPlot")),
     value = 'oradata'
     ),
   tabPanel(
@@ -43,7 +43,8 @@ navbarMenu(
         sep = ""
       )
     )),
-    plotOutput("ords_FullandTrialPlot")),
+    # plotOutput("ords_FullandTrialPlot")),
+    h3("This data is currently unavailable - please contact martin.hadley@it.ox.ac.uk for details")),
     value = 'ordsdata'
     )
   )

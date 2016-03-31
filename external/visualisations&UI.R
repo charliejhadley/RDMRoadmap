@@ -87,6 +87,9 @@ output$projtimeline <- renderPlot({
   base <-
     ggplot(proj.df, aes(
       x = Project.Start.Date, y = projectID, color = as.factor(IT.Board)
+      # This is useful only if going to use plotly for this chart
+      # ,text = paste0("IT Board:", IT.Board, "<br>", "Start Date:", Project.Start.Date,
+      #               "<br>", "End Date:", Project.End.Date)
     ))
   gantt <- {
     base +
@@ -98,22 +101,31 @@ output$projtimeline <- renderPlot({
     gantt + ylab(NULL) + xlab(NULL) + labs(color = "IT Board") + guides(color = guide_legend(title.hjust = 0.5))
   gantt <-
     gantt + scale_x_datetime(
-      breaks = "3 month", labels = date_format("%Y-%b"), minor_breaks = "3 month"
+      breaks = date_breaks("6 month"), labels = date_format("%Y-%b"), minor_breaks = date_breaks("3 month")
     ) + theme(axis.text.x = element_text(angle = 45, hjust = 1))
   
-  gantt + geom_vline(
-    data = milestone.df, aes(xintercept = as.integer(milestone), guide = FALSE), linetype = "dashed", guide = FALSE
-  ) +
-    if (!input$hideMilestones)
-      geom_text(
-        data = milestone.df, aes(
-          x = milestone,
-          y = (2 + nchar(as.vector(descrip)) /
-                 5),
-          label = descrip
-        ),
-        angle = 90, color = "black", text = element_text(size = 14), guide = FALSE
-      )
+  gantt <- {gantt + geom_vline(
+      data = milestone.df,
+      aes(xintercept = as.integer(milestone)),
+      linetype = "dashed",
+      show.legend = FALSE
+    ) +
+  if(!input$hideMilestones){
+    geom_text(
+      data = milestone.df,
+      aes(
+        x = milestone,
+        y = (2 + nchar(as.vector(descrip)) /
+               5),
+        label = descrip
+      ),
+      angle = 90,
+      color = "black"
+      # text = element_text(size = 14)
+    )
+  }}
+  gantt
+  # ggplotly(gantt, tooltip = c("text"))
 })
 
 
@@ -553,7 +565,7 @@ output$proposedProjectsDataTable <-
 ## ============================ ORA Data ======================================
 
 
-output$oraData_DepositsAndPublishedPlot <- renderPlot({
+output$oraData_DepositsAndPublishedPlot <- renderPlotly({
   oraMelted <-
     melt(
       as.data.frame(oraData.df.TimeSeries),  id.vars = 'Report.Date', variable.name = 'series'
@@ -562,31 +574,37 @@ output$oraData_DepositsAndPublishedPlot <- renderPlot({
   base <- ggplot(oraMelted, aes(Report.Date, value))
   plot <-
     base + geom_area(aes(group = series, fill = series), position = 'identity') + geom_point(aes(color = series), color = "black")
-  plot <- plot + xlab("Date") + ylab("Number of Deposits/Published")
-  plot + scale_fill_discrete(
+  plot <- plot + ylab("Number of Deposits/Published") + xlab("")
+  plot <- {plot + scale_fill_discrete(
     name = "",
     breaks = c("Datasets.Deposited", "Datasets.Published"),
     labels = c("Datasets Deposited", "Datasets Published")
   ) +
     scale_y_continuous(breaks = seq(0,round(max(oraMelted$value) + 5,-1),5)) +
     scale_x_datetime(
-      breaks = "1 month", labels = date_format("%d-%b-%Y"), minor_breaks = "1 month"
+      breaks = date_breaks("1 month"), labels = date_format("%d-%b-%Y")
     ) +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10))
+  }
+  plot <- plot + theme(plot.margin = unit(c(0,1,2,1), "cm"))
+  ggplotly(plot, tooltip = c("y","x","fill"))
 })
 
-output$oraData_FundersPlot <- renderPlot({
-  ggplot(oraData.FundingGrants, aes(
+output$oraData_FundersPlot <- renderPlotly({
+
+  plot <- {ggplot(oraData.df.FundingGrants, aes(
     x = rev(funderID),
     y = Number.of.Projects, fill = Funder
   )) + geom_bar(stat = "identity") +
     scale_fill_hue(l = 40) + theme(
       legend.position = "none",
       axis.text.x = element_text(
-        face = "bold", color = "black", size = 12, angle = 45, hjust = 1
+        face = "bold", color = "black", size = 10, angle = 30, hjust = 1
       )
     ) +
-    xlab("Funding Body") + ylab("Number of Projects") + scale_x_discrete(breaks = oraData.FundingGrants$funderID, labels = rev(oraData.FundingGrants$Funder))
+    xlab("") + ylab("Number of Projects") + ggtitle("Number of projects per funding body") + scale_x_discrete(breaks = oraData.df.FundingGrants$funderID, labels = rev(oraData.df.FundingGrants$Funder))}
+  plot <- plot + theme(plot.margin = unit(c(0,1,2,1), "cm"))
+  ggplotly(plot)
 })
 
 ## ============================ ORDS Usage ======================================

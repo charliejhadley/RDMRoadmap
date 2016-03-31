@@ -1,4 +1,6 @@
 library(shinythemes)
+library(plotly)
+library(shiny)
 
 shinyUI(fluidPage(
     tags$head(includeScript("google-analytics.js")),
