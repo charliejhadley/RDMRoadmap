@@ -609,7 +609,7 @@ output$oraData_FundersPlot <- renderPlotly({
 
 ## ============================ ORDS Usage ======================================
 
-output$ords_FullandTrialPlot <- renderPlot({
+output$ords_FullandTrialPlot <- renderPlotly({
   ordsMelted <-
     melt(as.data.frame(ords.FullAndTrial),  id.vars = 'Date', variable.name = 'series')
   ordsMelted$Date <- as.POSIXct(ordsMelted$Date)
@@ -621,8 +621,8 @@ output$ords_FullandTrialPlot <- renderPlot({
     base + geom_area(aes(
       group = series, fill = series, alpha = series
     ), position = "stack")
-  plot <- plot + xlab("Date") + ylab("Total Number of Projects")
-  plot + scale_fill_discrete(
+  plot <- plot + labs(x = "Date", y = "Total Number of Projects", fill = "Project Type") + geom_point(aes(color = series), color = "black", position = "stack")
+  plot <- plot + scale_fill_discrete(
     name = "Legened Title",
     breaks = c("Full.Projects","Trial.Projects"),
     labels = c("Full Projects","Trial Projects")
@@ -630,12 +630,14 @@ output$ords_FullandTrialPlot <- renderPlot({
     scale_y_continuous(breaks = seq(0,round(sum(
       ordsMelted[ordsMelted$Date == max(ordsMelted$Date),]$value
     ) + 10,-1),5)) +
-    scale_x_datetime(
-      breaks = "1 month", labels = date_format("%d-%b-%Y"), minor_breaks = "1 month"
-    ) +
-    scale_fill_manual(values = gg_color_hue(2)) +
+    # scale_x_datetime(
+    #   breaks = "1 month", labels = date_format("%d-%b-%Y"), minor_breaks = "1 month"
+    # ) +
+    # scale_fill_manual(values = gg_color_hue(2)) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
     scale_alpha_manual(values = c(.9, 1),guide = F) +
-    theme(legend.title = element_text("")) +
-    labs(fill = "Project Type")
+    theme(legend.title = element_text(""))
+  
+  ggplotly(plot)
+  
 })

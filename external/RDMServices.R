@@ -43,8 +43,8 @@ navbarMenu(
         sep = ""
       )
     )),
-    # plotOutput("ords_FullandTrialPlot")),
-    h3("This data is currently unavailable - please contact martin.hadley@it.ox.ac.uk for details")),
+    plotlyOutput("ords_FullandTrialPlot")),
+    # h3("This data is currently unavailable - please contact martin.hadley@it.ox.ac.uk for details")),
     value = 'ordsdata'
     )
   )

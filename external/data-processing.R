@@ -175,9 +175,9 @@ oraData.df.FundingGrants$funderID <- as.factor(nrow(oraData.df.FundingGrants):1)
 ## ================ ORDS Data Loading ==================
 
 # Commented out until we can make the googlesheet published to the web
-# ords.workbook <-
-#     gs_key("15WCvJcpJCVE1TPWut4iPWM0B0yQ4IrhwWPUJmTGwR6A",
-#          visibility = "private")
-# ords.FullAndTrial <- gs_read(ords.workbook, ws = "Sheet1", check.names = TRUE)
-# ords.FullAndTrial$Date <- force_tz(dmy(ords.FullAndTrial$Date), tzone = "GMT")
-# ords.FullAndTrial <- ords.FullAndTrial[c(1,2,3)]
+ords.workbook <-
+    gs_key("15WCvJcpJCVE1TPWut4iPWM0B0yQ4IrhwWPUJmTGwR6A",
+         visibility = "private")
+ords.FullAndTrial <- gs_read(ords.workbook, ws = "Sheet1", check.names = TRUE)
+ords.FullAndTrial$Date <- force_tz(dmy(ords.FullAndTrial$Date), tzone = "GMT")
+ords.FullAndTrial <- ords.FullAndTrial[c(1,2,3)]
